@@ -3,6 +3,7 @@ package auth
 // AuthService is the interface that provides authentication methods.
 type AuthService interface {
 	CreateUser(user *User) error
+	LoginUser(user *User) (string, error)
 }
 
 type authService struct {
@@ -18,4 +19,8 @@ func NewAuthService(repo AuthRepository) AuthService {
 
 func (s *authService) CreateUser(user *User) error {
 	return s.repo.Create(user)
+}
+
+func (s *authService) LoginUser(user *User) (string, error) {
+	return s.repo.GenerateJWT(user)
 }

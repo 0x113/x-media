@@ -2,8 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/0x113/x-media/auth"
 	"github.com/0x113/x-media/database/mysql"
@@ -20,15 +22,23 @@ func init() {
 }
 
 func main() {
+	jwt_secret := flag.String("jwt-key", "", "Key for generating JWT")
+	flag.Parse()
+	if *jwt_secret == "" {
+		fmt.Println("jwt-key cannot be empty. Run server using -jwt-key flag.")
+		os.Exit(0)
+	}
+
 	conn := mysqlConnection("xmedia_user", "password", "127.0.0.1", "3306", "xmedia")
 	defer conn.Close()
 
-	authRepo := mysql.NewMySQLAuthRepository(conn)
+	authRepo := mysql.NewMySQLAuthRepository(conn, *jwt_secret)
 	authService := auth.NewAuthService(authRepo)
 	authHandler := auth.NewAuthHandler(authService)
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/user/create", authHandler.Create).Methods("POST", "GET")
+	router.HandleFunc("/user/token/generate", authHandler.GenerateJWT).Methods("POST")
 
 	http.Handle("/", accessControl(router))
 

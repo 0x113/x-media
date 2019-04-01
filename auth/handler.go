@@ -8,6 +8,7 @@ import (
 // AuthHandler does something, but I don't know how to write it TODO: make this comment more clear
 type AuthHandler interface {
 	Create(w http.ResponseWriter, r *http.Request)
+	GenerateJWT(w http.ResponseWriter, r *http.Request)
 }
 
 type authHandler struct {
@@ -30,4 +31,16 @@ func (h *authHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(map[string]string{"message": "Successfully Created!"})
+}
+
+func (h *authHandler) GenerateJWT(w http.ResponseWriter, r *http.Request) {
+	var user User
+	json.NewDecoder(r.Body).Decode(&user)
+	token, err := h.authService.LoginUser(&user)
+	if err != nil {
+		json.NewEncoder(w).Encode(map[string]string{"error": "Unable to generate jwt"})
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }
