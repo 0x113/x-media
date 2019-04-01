@@ -36,7 +36,7 @@ func (h *authHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *authHandler) GenerateJWT(w http.ResponseWriter, r *http.Request) {
 	var user User
 	json.NewDecoder(r.Body).Decode(&user)
-	token, err := h.authService.LoginUser(&user)
+	token, err := h.authService.LoginUser(user.Username, user.Password)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Unable to generate jwt"})
 		return

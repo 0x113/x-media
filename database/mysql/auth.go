@@ -2,10 +2,8 @@ package mysql
 
 import (
 	"database/sql"
-	"time"
 
 	"github.com/0x113/x-media/auth"
-	jwt "github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -50,31 +48,14 @@ func (r *authRepository) Create(user *auth.User) error {
 	return nil
 }
 
-func (r *authRepository) GenerateJWT(user *auth.User) (string, error) {
-	query := `SELECT password FROM user WHERE username = ?`
+func (r *authRepository) GetUser(username string) (*auth.User, error) {
+	query := "SELECT user_id, username, password FROM user WHERE username = ?"
 
-	var hashedPassword string
-	err := r.db.QueryRow(query, user.Username).Scan(&hashedPassword)
+	var user auth.User
+	err := r.db.QueryRow(query, username).Scan(&user.ID, &user.Username, &user.Password)
 	if err != nil {
-		return "", err
+		return &user, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(user.Password))
-	if err != nil {
-		return "", err
-	}
-
-	expirationTime := time.Now().Add(5 * time.Minute) // expiration time of the token
-	// generate JWT
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username":   user.Username,
-		"expires_at": expirationTime.Unix(),
-	})
-	tokenString, err := token.SignedString([]byte(r.jwtKey))
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
-
+	return &user, nil
 }

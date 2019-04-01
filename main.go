@@ -33,7 +33,7 @@ func main() {
 	defer conn.Close()
 
 	authRepo := mysql.NewMySQLAuthRepository(conn, *jwt_secret)
-	authService := auth.NewAuthService(authRepo)
+	authService := auth.NewAuthService(authRepo, *jwt_secret)
 	authHandler := auth.NewAuthHandler(authService)
 
 	router := mux.NewRouter().StrictSlash(true)
