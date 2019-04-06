@@ -2,14 +2,17 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/0x113/x-media/auth"
 	"github.com/0x113/x-media/database/mysql"
 	"github.com/0x113/x-media/video"
+	jwt "github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -54,6 +57,7 @@ func main() {
 	router.HandleFunc("/api/movies", videoHandler.AllMovies).Methods("GET")
 
 	http.Handle("/", accessControl(router))
+	http.Handle("/api/", authRequired(router))
 
 	log.Infoln("Launching server on port :8000")
 	if err := http.ListenAndServe(":8000", nil); err != nil {
@@ -77,6 +81,46 @@ func accessControl(h http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
 
 		if r.Method == "OPTIONS" {
+			return
+		}
+
+		h.ServeHTTP(w, r)
+	})
+}
+
+func authRequired(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := make(map[string]string)
+
+		tokenHeader := r.Header.Get("Authorization")
+		if tokenHeader == "" {
+			response["error"] = "Missing authorization token"
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+		splitted := strings.Split(tokenHeader, " ")
+		if len(splitted) != 2 {
+			response["error"] = "Invalid/Malformed authorization token"
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+		token, err := jwt.Parse(splitted[1], func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, nil
+			}
+			return []byte("secret"), nil
+		})
+		if err != nil {
+			response["error"] = err.Error()
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+		if !token.Valid {
+			response["error"] = "Invalid authorization token"
+			json.NewEncoder(w).Encode(response)
 			return
 		}
 
