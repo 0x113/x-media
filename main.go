@@ -9,6 +9,7 @@ import (
 
 	"github.com/0x113/x-media/auth"
 	"github.com/0x113/x-media/database/mysql"
+	"github.com/0x113/x-media/video"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -32,13 +33,24 @@ func main() {
 	conn := mysqlConnection("xmedia_user", "password", "127.0.0.1", "3306", "xmedia")
 	defer conn.Close()
 
+	/* authentication */
 	authRepo := mysql.NewMySQLAuthRepository(conn, *jwt_secret)
 	authService := auth.NewAuthService(authRepo, *jwt_secret)
 	authHandler := auth.NewAuthHandler(authService)
 
+	/* video */
+	videoRepo := mysql.NewMySQLVideoRepository(conn, *jwt_secret)
+	videoService := video.NewVideoService(videoRepo)
+	videoHandler := video.NewVideoHandler(videoService)
+
 	router := mux.NewRouter().StrictSlash(true)
+
+	/* authentication routes */
 	router.HandleFunc("/user/create", authHandler.Create).Methods("POST", "GET")
 	router.HandleFunc("/user/token/generate", authHandler.GenerateJWT).Methods("POST")
+
+	/* vidoe routes */
+	router.HandleFunc("/api/movies/update", videoHandler.UpdateMovies).Methods("GET")
 
 	http.Handle("/", accessControl(router))
 
