@@ -41,3 +41,24 @@ func (r *videoRepository) SaveMovie(movie *video.Movie) error {
 	return nil
 
 }
+
+func (r *videoRepository) FindAllMovies() ([]*video.Movie, error) {
+	rows, err := r.db.Query("SELECT * FROM movie")
+	if err != nil {
+		log.Errorf("Error while selecting all movies: %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var movies []*video.Movie
+	for rows.Next() {
+		movie := new(video.Movie)
+		if err := rows.Scan(&movie.MovieID, &movie.Title, &movie.Description, &movie.Director, &movie.Genre, &movie.Duration, &movie.Rate, &movie.ReleaseDate, &movie.PosterPath); err != nil {
+			log.Errorf("Error while scanning for movie: %s", err.Error())
+			return nil, err
+		}
+		movies = append(movies, movie)
+	}
+
+	return movies, nil
+}

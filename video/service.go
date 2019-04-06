@@ -11,6 +11,7 @@ import (
 
 type VideoService interface {
 	Save() error
+	AllMovies() ([]*Movie, error)
 }
 
 type videoService struct {
@@ -39,6 +40,10 @@ func (s *videoService) Save() error {
 	}
 	log.Infoln("The movie database has been updated.")
 	return nil
+}
+
+func (s *videoService) AllMovies() ([]*Movie, error) {
+	return s.repo.FindAllMovies()
 }
 
 func (s *videoService) getVideos(videoDirPath string) ([]string, error) {
