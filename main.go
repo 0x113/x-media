@@ -51,6 +51,7 @@ func main() {
 
 	/* vidoe routes */
 	router.HandleFunc("/api/movies/update", videoHandler.UpdateMovies).Methods("GET")
+	router.HandleFunc("/api/movies", videoHandler.AllMovies).Methods("GET")
 
 	http.Handle("/", accessControl(router))
 
