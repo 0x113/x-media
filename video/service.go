@@ -82,24 +82,24 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	/* Get movie card and check for errors. */
 	movieCard := doc.Find("div", "class", "wrapperContent__content")
 	if movieCard.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie card.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie card")
 		return nil, err
 	}
 	movieCard = movieCard.Find("ul", "class", "resultsList")
 	if movieCard.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find results list.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find results list")
 		return nil, err
 	}
 	movieCard = movieCard.Find("li")
 	if movieCard.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie")
 		return nil, err
 	}
 
 	/* Get movie title */
 	titleHTML := movieCard.Find("data")
 	if titleHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie title.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie title")
 		return nil, err
 	}
 	title := titleHTML.Attrs()["data-title"]
@@ -107,7 +107,7 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	/* Get movie release date */
 	movieReleaseDateHTML := movieCard.Find("div")
 	if movieReleaseDateHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie release date.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie release date")
 		return nil, err
 	}
 	movieReleaseDate := movieReleaseDateHTML.Attrs()["data-release"]
@@ -115,7 +115,7 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	/* Get movie duration */
 	movieDurationHTML := movieCard.Find("div", "class", "filmPreview__filmTime")
 	if movieDurationHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie duration.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie duration")
 		return nil, err
 	}
 	movieDuration := movieDurationHTML.Text()
@@ -123,7 +123,7 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	/* Get movie rate */
 	movieRateHTML := movieCard.Find("div", "class", "filmPreview__rateBox")
 	if movieRateHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie rate.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie rate")
 		return nil, err
 	}
 	movieRate := movieRateHTML.Attrs()["data-rate"]
@@ -136,12 +136,12 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	/* Get movie director */
 	movieDirectorHTML := movieCard.Find("div", "class", "filmPreview__info--directors")
 	if movieDurationHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie directors.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie directors")
 		return nil, err
 	}
 	movieDirectorHTML = movieDirectorHTML.Find("a")
 	if movieDurationHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie directors.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie directors")
 		return nil, err
 	}
 	movieDirector := movieDirectorHTML.Attrs()["title"]
@@ -149,17 +149,17 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	/* Get movie genre */
 	movieGenreHTML := movieCard.Find("div", "class", "filmPreview__info--genres")
 	if movieGenreHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre")
 		return nil, err
 	}
 	movieGenreHTML = movieGenreHTML.Find("ul")
 	if movieGenreHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre")
 		return nil, err
 	}
 	movieGenreHTML = movieGenreHTML.Find("a")
 	if movieGenreHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre")
 		return nil, err
 	}
 	movieGenre := movieGenreHTML.Text()
@@ -167,7 +167,7 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	/* Get movie poster */
 	moviePosterHTML := movieCard.Find("img", "class", "filmPoster__image")
 	if moviePosterHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie poster.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie poster")
 		return nil, err
 	}
 	moviePoster := moviePosterHTML.Attrs()["data-src"]
@@ -176,26 +176,26 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	/* Get movie details (description) */
 	detailsLinkHTML := movieCard.Find("a", "class", "filmPreview__link")
 	if detailsLinkHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find details link.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find details link")
 		return nil, err
 	}
 	// Scrape details page
 	detailsURL := detailsLinkHTML.Attrs()["href"]
 	detailsRes, err := soup.Get("https://filmweb.pl" + detailsURL)
 	if err != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to open details page.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to open details page")
 		return nil, err
 	}
 	detailsDoc := soup.HTMLParse(detailsRes)
 	// Get movie description
 	descriptionHTML := detailsDoc.Find("div", "class", "filmPlot")
 	if descriptionHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie description.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie description")
 		return nil, err
 	}
 	descriptionHTML = descriptionHTML.Find("p")
 	if descriptionHTML.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie description.")
+		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie description")
 		return nil, err
 	}
 	description := descriptionHTML.Text()
