@@ -5,6 +5,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -46,8 +47,11 @@ func (s *authService) LoginUser(username, password string) (string, error) {
 	}
 	token, err := s.getToken(user)
 	if err != nil {
+		log.WithFields(log.Fields{"user": username, "error": err.Error()}).Error("Unable to generate token")
 		return "", err
 	}
+
+	log.Infof("Generated token for user %s", username)
 
 	return token, nil
 }
