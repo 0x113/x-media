@@ -27,17 +27,12 @@ func (r *videoRepository) SaveMovie(movie *video.Movie) error {
 		return err
 	}
 
-	res, err := stmt.Exec(movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.PosterPath, movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.PosterPath)
+	_, err = stmt.Exec(movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.PosterPath, movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.PosterPath)
 	if err != nil {
 		log.Errorf("Error while executing statement: %s", err.Error())
 		return err
 	}
-	newID, err := res.LastInsertId()
-	if err != nil {
-		return err
-	}
-
-	log.Infof("Created movie with id %d", newID)
+	log.Infof("Updated movie with title: %s", movie.Title)
 	return nil
 
 }
