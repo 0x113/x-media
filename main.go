@@ -52,7 +52,7 @@ func main() {
 	router.HandleFunc("/user/create", authHandler.Create).Methods("POST", "GET")
 	router.HandleFunc("/user/token/generate", authHandler.GenerateJWT).Methods("POST")
 
-	/* vidoe routes */
+	/* video routes */
 	router.HandleFunc("/api/movies/update", videoHandler.UpdateMovies).Methods("GET")
 	router.HandleFunc("/api/movies", videoHandler.AllMovies).Methods("GET")
 
