@@ -1,6 +1,6 @@
 package video
 
-// Movie represtents model for movie
+// Movie represents model for movie
 type Movie struct {
 	MovieID     int64   `json:"movie_id"`
 	Title       string  `json:"title"`
@@ -13,6 +13,7 @@ type Movie struct {
 	PosterPath  string  `json:"poster_path"`
 }
 
+// TvSeries represents model for tv series
 type TVSeries struct {
 	TvSeriesID      int64   `json:"tv_series_id"`
 	Title           string  `json:"title"`
