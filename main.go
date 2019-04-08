@@ -10,6 +10,7 @@ import (
 
 	"github.com/0x113/x-media/auth"
 	"github.com/0x113/x-media/database/mysql"
+	"github.com/0x113/x-media/env"
 	"github.com/0x113/x-media/video"
 	jwt "github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
@@ -34,7 +35,7 @@ func main() {
 	jwtSecret := os.Getenv("jwt_secret")
 
 	/* Check env variables */
-	if dbUser == "" || dbPass == "" || dbHost == "" || dbPort == "" || dbName == "" || jwtSecret == "" {
+	if dbUser == "" || dbPass == "" || dbHost == "" || dbPort == "" || dbName == "" || jwtSecret == "" || env.EnvString("video_dir") == "" {
 		log.Error("Environment variables can not be empty.")
 		log.Println("List of environment variables: ")
 		log.Printf("db_user: %s\n", dbUser)
@@ -43,6 +44,7 @@ func main() {
 		log.Printf("db_port: %s\n", dbPort)
 		log.Printf("db_name: %s\n", dbName)
 		log.Printf("jwt_secret: %s", jwtSecret)
+		log.Printf("video_dir: %s", env.EnvString("video_dir"))
 		os.Exit(0)
 	}
 

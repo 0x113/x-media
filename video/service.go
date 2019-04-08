@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/0x113/x-media/env"
 	"github.com/anaskhan96/soup"
 	log "github.com/sirupsen/logrus"
 )
@@ -28,7 +29,7 @@ func NewVideoService(repo VideoRepository) VideoService {
 
 func (s *videoService) Save() error {
 	log.Infoln("Updating movie database...")
-	videos, err := s.getVideos("/home/xa0s/Downloads/Movies/") // TODO: use env variable
+	videos, err := s.getVideos(env.EnvString("video_dir")) // TODO: use env variable
 	if err != nil {
 		log.Error("Unable to get list of movies")
 		return err
@@ -45,7 +46,7 @@ func (s *videoService) Save() error {
 }
 
 func (s *videoService) SaveTVShows() error {
-	tvSeriesList, err := s.getTvSeries("/home/xa0s/Downloads/Movies/")
+	tvSeriesList, err := s.getTvSeries(env.EnvString("video_dir"))
 	if err != nil {
 		log.Error("Unable to get tv series list")
 		return err
@@ -107,12 +108,13 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	var toSearch = s.removeFromArray(fileName, toRemove)
 
 	/* Get movie info from filmweb.pl TODO: allow user to choose other service*/
-	url := "https://filmweb.pl/search?q=" + toSearch
+	var url string
 
 	// if file is probably tv series
 	if !strings.Contains(toSearch, "mp4") {
 		url = "https://filmweb.pl/serials/search?q=" + toSearch
 	}
+	url = "https://filmweb.pl/search?q=" + toSearch
 
 	url = strings.Replace(url, ".mp4", "", -1)
 
