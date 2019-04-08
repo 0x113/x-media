@@ -15,7 +15,7 @@ type Movie struct {
 
 // TvSeries represents model for tv series
 type TVSeries struct {
-	TvSeriesID      int64   `json:"tv_series_id"`
+	SeriesID        int64   `json:"series_id"`
 	Title           string  `json:"title"`
 	Description     string  `json:"description"`
 	Director        string  `json:"director"`
