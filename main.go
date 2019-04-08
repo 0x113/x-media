@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -26,23 +25,37 @@ func init() {
 }
 
 func main() {
-	jwt_secret := flag.String("jwt-key", "", "Key for generating JWT")
-	flag.Parse()
-	if *jwt_secret == "" {
-		fmt.Println("jwt-key cannot be empty. Run server using -jwt-key flag.")
+	/* Get env variables */
+	dbUser := os.Getenv("db_user")
+	dbPass := os.Getenv("db_pass")
+	dbHost := os.Getenv("db_host")
+	dbPort := os.Getenv("db_port")
+	dbName := os.Getenv("db_name")
+	jwtSecret := os.Getenv("jwt_secret")
+
+	/* Check env variables */
+	if dbUser == "" || dbPass == "" || dbHost == "" || dbPort == "" || dbName == "" || jwtSecret == "" {
+		log.Error("Environment variables can not be empty.")
+		log.Println("List of environment variables: ")
+		log.Printf("db_user: %s\n", dbUser)
+		log.Printf("db_pass: %s\n", dbPass)
+		log.Printf("db_host: %s\n", dbHost)
+		log.Printf("db_port: %s\n", dbPort)
+		log.Printf("db_name: %s\n", dbName)
+		log.Printf("jwt_secret: %s", jwtSecret)
 		os.Exit(0)
 	}
 
-	conn := mysqlConnection("xmedia_user", "password", "127.0.0.1", "3306", "xmedia")
+	conn := mysqlConnection(dbUser, dbPass, dbHost, dbPort, dbName)
 	defer conn.Close()
 
 	/* authentication */
-	authRepo := mysql.NewMySQLAuthRepository(conn, *jwt_secret)
-	authService := auth.NewAuthService(authRepo, *jwt_secret)
+	authRepo := mysql.NewMySQLAuthRepository(conn, jwtSecret)
+	authService := auth.NewAuthService(authRepo, jwtSecret)
 	authHandler := auth.NewAuthHandler(authService)
 
 	/* video */
-	videoRepo := mysql.NewMySQLVideoRepository(conn, *jwt_secret)
+	videoRepo := mysql.NewMySQLVideoRepository(conn, jwtSecret)
 	videoService := video.NewVideoService(videoRepo)
 	videoHandler := video.NewVideoHandler(videoService)
 
