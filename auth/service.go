@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/0x113/x-media/env"
 	jwt "github.com/dgrijalva/jwt-go"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
@@ -16,15 +17,13 @@ type AuthService interface {
 }
 
 type authService struct {
-	repo   AuthRepository
-	jwtKey []byte
+	repo AuthRepository
 }
 
 // NewAuthService returns a new instance of authentication service.
-func NewAuthService(repo AuthRepository, jwtKey string) AuthService {
+func NewAuthService(repo AuthRepository) AuthService {
 	return &authService{
 		repo,
-		[]byte(jwtKey),
 	}
 }
 
@@ -67,6 +66,6 @@ func (s *authService) getToken(user *User) (string, error) {
 	})
 
 	/* Sign the token with key */
-	return token.SignedString(s.jwtKey)
+	return token.SignedString(env.EnvString("jwt_key"))
 
 }

@@ -10,15 +10,13 @@ import (
 )
 
 type authRepository struct {
-	db     *sql.DB
-	jwtKey string
+	db *sql.DB
 }
 
 // NewMySQLAuthRepository creates new authRepository
-func NewMySQLAuthRepository(db *sql.DB, jwtKey string) auth.AuthRepository {
+func NewMySQLAuthRepository(db *sql.DB) auth.AuthRepository {
 	return &authRepository{
 		db,
-		jwtKey,
 	}
 }
 

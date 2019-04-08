@@ -8,14 +8,12 @@ import (
 )
 
 type videoRepository struct {
-	db     *sql.DB
-	jwtKey string
+	db *sql.DB
 }
 
-func NewMySQLVideoRepository(db *sql.DB, jwtKey string) video.VideoRepository {
+func NewMySQLVideoRepository(db *sql.DB) video.VideoRepository {
 	return &videoRepository{
 		db,
-		jwtKey,
 	}
 }
 

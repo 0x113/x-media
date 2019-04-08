@@ -52,12 +52,12 @@ func main() {
 	defer conn.Close()
 
 	/* authentication */
-	authRepo := mysql.NewMySQLAuthRepository(conn, jwtSecret)
-	authService := auth.NewAuthService(authRepo, jwtSecret)
+	authRepo := mysql.NewMySQLAuthRepository(conn)
+	authService := auth.NewAuthService(authRepo)
 	authHandler := auth.NewAuthHandler(authService)
 
 	/* video */
-	videoRepo := mysql.NewMySQLVideoRepository(conn, jwtSecret)
+	videoRepo := mysql.NewMySQLVideoRepository(conn)
 	videoService := video.NewVideoService(videoRepo)
 	videoHandler := video.NewVideoHandler(videoService)
 
