@@ -13,6 +13,7 @@ type VideoService interface {
 	Save() error
 	AllMovies() ([]*Movie, error)
 	SaveTVShows() error
+	AllTvSeries() ([]*TVSeries, error)
 }
 
 type videoService struct {
@@ -63,6 +64,10 @@ func (s *videoService) SaveTVShows() error {
 
 func (s *videoService) AllMovies() ([]*Movie, error) {
 	return s.repo.FindAllMovies()
+}
+
+func (s *videoService) AllTvSeries() ([]*TVSeries, error) {
+	return s.repo.FindAllTvSeries()
 }
 
 func (s *videoService) getVideos(videoDirPath string) ([]string, error) {
