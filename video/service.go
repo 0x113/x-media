@@ -57,6 +57,7 @@ func (s *videoService) SaveTVShows() error {
 		}
 		s.repo.SaveTvSeries(tvSeries)
 	}
+	log.Infoln("TV series database has been updated.")
 	return nil
 }
 
