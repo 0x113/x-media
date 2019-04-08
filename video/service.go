@@ -29,7 +29,7 @@ func NewVideoService(repo VideoRepository) VideoService {
 
 func (s *videoService) Save() error {
 	log.Infoln("Updating movie database...")
-	videos, err := s.getVideos(env.EnvString("video_dir")) // TODO: use env variable
+	videos, err := s.getVideos(env.EnvString("video_dir"))
 	if err != nil {
 		log.Error("Unable to get list of movies")
 		return err
