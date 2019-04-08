@@ -12,6 +12,7 @@ import (
 type VideoService interface {
 	Save() error
 	AllMovies() ([]*Movie, error)
+	SaveTVShows() error
 }
 
 type videoService struct {
@@ -28,17 +29,34 @@ func (s *videoService) Save() error {
 	log.Infoln("Updating movie database...")
 	videos, err := s.getVideos("/home/xa0s/Downloads/Movies/") // TODO: use env variable
 	if err != nil {
-		log.Error("Unable to get movie info")
+		log.Error("Unable to get list of movies")
 		return err
 	}
 	for _, v := range videos {
-		movie, err := s.getMovieInfo(v)
+		movie, _, err := s.getMovieAndTvSeriesInfo(v)
 		if err != nil || movie == nil {
 			continue
 		}
 		s.repo.SaveMovie(movie)
 	}
 	log.Infoln("The movie database has been updated.")
+	return nil
+}
+
+func (s *videoService) SaveTVShows() error {
+	tvSeriesList, err := s.getTvSeries("/home/xa0s/Downloads/Movies/")
+	if err != nil {
+		log.Error("Unable to get tv series list")
+		return err
+	}
+
+	for _, t := range tvSeriesList {
+		_, tvSeries, err := s.getMovieAndTvSeriesInfo(t)
+		if err != nil || tvSeries == nil {
+			continue
+		}
+		s.repo.SaveTvSeries(tvSeries)
+	}
 	return nil
 }
 
@@ -52,7 +70,7 @@ func (s *videoService) getVideos(videoDirPath string) ([]string, error) {
 	var videos []string
 	files, err := ioutil.ReadDir(videoDirPath)
 	if err != nil {
-		return videos, err
+		return nil, err
 	}
 	for _, f := range files {
 		if strings.HasSuffix(f.Name(), "mkv") || strings.HasSuffix(f.Name(), "mp4") {
@@ -63,18 +81,38 @@ func (s *videoService) getVideos(videoDirPath string) ([]string, error) {
 	return videos, nil
 }
 
-func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
+func (s *videoService) getTvSeries(tvSeriesDirPath string) ([]string, error) {
+	var tvSeries []string
+	files, err := ioutil.ReadDir(tvSeriesDirPath)
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range files {
+		if f.IsDir() && f.Name() != "sub" {
+			tvSeries = append(tvSeries, f.Name())
+		}
+	}
+
+	return tvSeries, nil
+}
+
+func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeries, error) {
 	toRemove := []string{".NSB", ".mkv", ".mp4"}
-	var toSearch = s.removeFromArray(movieFileName, toRemove)
+	var toSearch = s.removeFromArray(fileName, toRemove)
 
 	/* Get movie info from filmweb.pl TODO: allow user to choose other service*/
 	url := "https://filmweb.pl/search?q=" + toSearch
+
+	// if file is probably tv series
+	if !strings.Contains(toSearch, "mp4") {
+		url = "https://filmweb.pl/serials/search?q=" + toSearch
+	}
 
 	url = strings.Replace(url, ".mp4", "", -1)
 
 	res, err := soup.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	doc := soup.HTMLParse(res)
@@ -83,24 +121,24 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	movieCard := doc.Find("div", "class", "wrapperContent__content")
 	if movieCard.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie card")
-		return nil, err
+		return nil, nil, err
 	}
 	movieCard = movieCard.Find("ul", "class", "resultsList")
 	if movieCard.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find results list")
-		return nil, err
+		return nil, nil, err
 	}
 	movieCard = movieCard.Find("li")
 	if movieCard.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie")
-		return nil, err
+		return nil, nil, err
 	}
 
 	/* Get movie title */
 	titleHTML := movieCard.Find("data")
 	if titleHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie title")
-		return nil, err
+		return nil, nil, err
 	}
 	title := titleHTML.Attrs()["data-title"]
 
@@ -108,7 +146,7 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	movieReleaseDateHTML := movieCard.Find("div")
 	if movieReleaseDateHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie release date")
-		return nil, err
+		return nil, nil, err
 	}
 	movieReleaseDate := movieReleaseDateHTML.Attrs()["data-release"]
 
@@ -116,7 +154,7 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	movieDurationHTML := movieCard.Find("div", "class", "filmPreview__filmTime")
 	if movieDurationHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie duration")
-		return nil, err
+		return nil, nil, err
 	}
 	movieDuration := movieDurationHTML.Text()
 
@@ -124,25 +162,25 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	movieRateHTML := movieCard.Find("div", "class", "filmPreview__rateBox")
 	if movieRateHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie rate")
-		return nil, err
+		return nil, nil, err
 	}
 	movieRate := movieRateHTML.Attrs()["data-rate"]
 	// convert movie rate to float
 	movieRateFloat, err := strconv.ParseFloat(movieRate, 64)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	/* Get movie director */
 	movieDirectorHTML := movieCard.Find("div", "class", "filmPreview__info--directors")
 	if movieDurationHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie directors")
-		return nil, err
+		return nil, nil, err
 	}
 	movieDirectorHTML = movieDirectorHTML.Find("a")
 	if movieDurationHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie directors")
-		return nil, err
+		return nil, nil, err
 	}
 	movieDirector := movieDirectorHTML.Attrs()["title"]
 
@@ -150,17 +188,17 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	movieGenreHTML := movieCard.Find("div", "class", "filmPreview__info--genres")
 	if movieGenreHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre")
-		return nil, err
+		return nil, nil, err
 	}
 	movieGenreHTML = movieGenreHTML.Find("ul")
 	if movieGenreHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre")
-		return nil, err
+		return nil, nil, err
 	}
 	movieGenreHTML = movieGenreHTML.Find("a")
 	if movieGenreHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre")
-		return nil, err
+		return nil, nil, err
 	}
 	movieGenre := movieGenreHTML.Text()
 
@@ -168,7 +206,7 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	moviePosterHTML := movieCard.Find("img", "class", "filmPoster__image")
 	if moviePosterHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie poster")
-		return nil, err
+		return nil, nil, err
 	}
 	moviePoster := moviePosterHTML.Attrs()["data-src"]
 	moviePoster = strings.Replace(moviePoster, "6.jpg", "3.jpg", -1)
@@ -177,26 +215,26 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 	detailsLinkHTML := movieCard.Find("a", "class", "filmPreview__link")
 	if detailsLinkHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find details link")
-		return nil, err
+		return nil, nil, err
 	}
 	// Scrape details page
 	detailsURL := detailsLinkHTML.Attrs()["href"]
 	detailsRes, err := soup.Get("https://filmweb.pl" + detailsURL)
 	if err != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to open details page")
-		return nil, err
+		return nil, nil, err
 	}
 	detailsDoc := soup.HTMLParse(detailsRes)
 	// Get movie description
 	descriptionHTML := detailsDoc.Find("div", "class", "filmPlot")
 	if descriptionHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie description")
-		return nil, err
+		return nil, nil, err
 	}
 	descriptionHTML = descriptionHTML.Find("p")
 	if descriptionHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie description")
-		return nil, err
+		return nil, nil, err
 	}
 	description := descriptionHTML.Text()
 
@@ -210,7 +248,18 @@ func (s *videoService) getMovieInfo(movieFileName string) (*Movie, error) {
 		ReleaseDate: movieReleaseDate,
 		PosterPath:  moviePoster,
 	}
-	return &movie, nil
+
+	tvSeries := TVSeries{
+		Title:           title,
+		Description:     description,
+		Director:        movieDirector,
+		Genre:           movieGenre,
+		EpisodeDuration: movieDuration,
+		Rate:            movieRateFloat,
+		ReleaseDate:     movieReleaseDate,
+		PosterPath:      moviePoster,
+	}
+	return &movie, &tvSeries, nil
 }
 
 func (s *videoService) removeFromArray(str string, toRemove []string) string {

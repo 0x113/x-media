@@ -57,3 +57,20 @@ func (r *videoRepository) FindAllMovies() ([]*video.Movie, error) {
 
 	return movies, nil
 }
+
+func (r *videoRepository) SaveTvSeries(tvSeries *video.TVSeries) error {
+	query := "INSERT INTO series (title, description, director, genre, episode_duration, rate, release_date, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, description=?, director=?, genre=?, episode_duration=?, rate=?, release_date=?, poster_path=?"
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		log.Errorf("Error while preparing statement: %s", err.Error())
+		return err
+	}
+
+	_, err = stmt.Exec(tvSeries.Title, tvSeries.Description, tvSeries.Director, tvSeries.Genre, tvSeries.EpisodeDuration, tvSeries.Rate, tvSeries.ReleaseDate, tvSeries.PosterPath, tvSeries.Title, tvSeries.Description, tvSeries.Director, tvSeries.Genre, tvSeries.EpisodeDuration, tvSeries.Rate, tvSeries.ReleaseDate, tvSeries.PosterPath)
+	if err != nil {
+		log.Errorf("Error while executing statement: %s", err.Error())
+		return err
+	}
+	log.Infof("Updated serial with title: %s", tvSeries.Title)
+	return nil
+}

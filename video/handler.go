@@ -10,6 +10,8 @@ type VideoHandler interface {
 	UpdateMovies(w http.ResponseWriter, r *http.Request)
 	// AllMovies returns all movies in json
 	AllMovies(w http.ResponseWriter, r *http.Request)
+	// UpdateTvSeries alloew user to save tv series from disk to the database
+	UpdateTvSeries(w http.ResponseWriter, r *http.Request)
 }
 
 type videoHandler struct {
@@ -28,7 +30,7 @@ func (h *videoHandler) UpdateMovies(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 		return
 	}
-	json.NewEncoder(w).Encode(map[string]string{"message": "Successfully saved!"})
+	json.NewEncoder(w).Encode(map[string]string{"message": "Successfully saved"})
 
 }
 
@@ -39,4 +41,16 @@ func (h *videoHandler) AllMovies(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(movies)
+}
+
+func (h *videoHandler) UpdateTvSeries(w http.ResponseWriter, r *http.Request) {
+	err := h.videoService.SaveTVShows()
+	response := make(map[string]string)
+	if err != nil {
+		response["error"] = err.Error()
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	response["message"] = "Successfully updated tv series"
+	json.NewEncoder(w).Encode(response)
 }
