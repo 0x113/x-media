@@ -15,6 +15,7 @@ type VideoService interface {
 	AllMovies() ([]*Movie, error)
 	SaveTVShows() error
 	AllTvSeries() ([]*TVSeries, error)
+	TvSeriesEpisodes(title string) ([]string, error)
 }
 
 type videoService struct {
@@ -29,7 +30,13 @@ func NewVideoService(repo VideoRepository) VideoService {
 
 func (s *videoService) Save() error {
 	log.Infoln("Updating movie database...")
-	videos, err := s.getVideos(env.EnvString("video_dir"))
+
+	// check if video dir path ends with slash
+	videoDirPath := env.EnvString("video_dir")
+	if !strings.HasSuffix(videoDirPath, "/") {
+		videoDirPath += "/"
+	}
+	videos, err := s.getVideos(videoDirPath)
 	if err != nil {
 		log.Error("Unable to get list of movies")
 		return err
@@ -46,7 +53,14 @@ func (s *videoService) Save() error {
 }
 
 func (s *videoService) SaveTVShows() error {
-	tvSeriesList, err := s.getTvSeries(env.EnvString("video_dir"))
+	log.Infoln("Updating series database... ")
+	// check if video dir path ends with slash
+	videoDirPath := env.EnvString("video_dir")
+	if !strings.HasSuffix(videoDirPath, "/") {
+		videoDirPath += "/"
+	}
+
+	tvSeriesList, err := s.getTvSeries(videoDirPath)
 	if err != nil {
 		log.Error("Unable to get tv series list")
 		return err
@@ -69,6 +83,10 @@ func (s *videoService) AllMovies() ([]*Movie, error) {
 
 func (s *videoService) AllTvSeries() ([]*TVSeries, error) {
 	return s.repo.FindAllTvSeries()
+}
+
+func (s *videoService) TvSeriesEpisodes(title string) ([]string, error) {
+	return []string{""}, nil
 }
 
 func (s *videoService) getVideos(videoDirPath string) ([]string, error) {
