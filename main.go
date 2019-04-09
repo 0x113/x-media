@@ -128,7 +128,7 @@ func authRequired(h http.Handler) http.Handler {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, nil
 			}
-			return []byte("secret"), nil
+			return []byte(env.EnvString("jwt_key")), nil
 		})
 		if err != nil {
 			response["error"] = err.Error()
