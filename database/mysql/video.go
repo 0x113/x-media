@@ -18,14 +18,14 @@ func NewMySQLVideoRepository(db *sql.DB) video.VideoRepository {
 }
 
 func (r *videoRepository) SaveMovie(movie *video.Movie) error {
-	query := "INSERT INTO movie (title, description, director, genre, duration, rate, release_date, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, description=?, director=?, genre=?, duration=?, rate=?, release_date=?, poster_path=?"
+	query := "INSERT INTO movie (title, description, director, genre, duration, rate, release_date, file_name, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, description=?, director=?, genre=?, duration=?, rate=?, release_date=?, file_name=?, poster_path=?"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		log.Errorf("Error while preparing statement: %s", err.Error())
 		return err
 	}
 
-	_, err = stmt.Exec(movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.PosterPath, movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.PosterPath)
+	_, err = stmt.Exec(movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.FileName, movie.PosterPath, movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.FileName, movie.PosterPath)
 	if err != nil {
 		log.Errorf("Error while executing statement: %s", err.Error())
 		return err
@@ -46,7 +46,7 @@ func (r *videoRepository) FindAllMovies() ([]*video.Movie, error) {
 	var movies []*video.Movie
 	for rows.Next() {
 		movie := new(video.Movie)
-		if err := rows.Scan(&movie.MovieID, &movie.Title, &movie.Description, &movie.Director, &movie.Genre, &movie.Duration, &movie.Rate, &movie.ReleaseDate, &movie.PosterPath); err != nil {
+		if err := rows.Scan(&movie.MovieID, &movie.Title, &movie.Description, &movie.Director, &movie.Genre, &movie.Duration, &movie.Rate, &movie.ReleaseDate, &movie.FileName, &movie.PosterPath); err != nil {
 			log.Errorf("Error while scanning for movie: %s", err.Error())
 			return nil, err
 		}

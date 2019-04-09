@@ -313,6 +313,7 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 		Duration:    movieDuration,
 		Rate:        movieRateFloat,
 		ReleaseDate: movieReleaseDate,
+		FileName:    fileName,
 		PosterPath:  moviePoster,
 	}
 

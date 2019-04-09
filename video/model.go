@@ -10,6 +10,7 @@ type Movie struct {
 	Duration    string  `json:"duration"`
 	Rate        float64 `json:"rate"`
 	ReleaseDate string  `json:"release_date"`
+	FileName    string  `json:"file_name"`
 	PosterPath  string  `json:"poster_path"`
 }
 
