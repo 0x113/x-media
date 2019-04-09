@@ -25,3 +25,9 @@ type TVSeries struct {
 	ReleaseDate     string  `json:"release_date"`
 	PosterPath      string  `json:"poster_path"`
 }
+
+// Season represents model for one season of tv series
+type Season struct {
+	Name     string   `json:"name"`
+	Episodes []string `json:"episodes"`
+}
