@@ -3,7 +3,9 @@ package video
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
+	"github.com/0x113/x-media/env"
 	"github.com/gorilla/mux"
 )
 
@@ -18,6 +20,8 @@ type VideoHandler interface {
 	AllTvSeries(w http.ResponseWriter, r *http.Request)
 	// TvSeriesEpisodes returns list of episodes for certain tv series
 	AllTvSeriesEpisodes(w http.ResponseWriter, r *http.Request)
+	// ServeMovie returns movie as html5 video
+	ServeMovie(w http.ResponseWriter, r *http.Request)
 }
 
 type videoHandler struct {
@@ -84,4 +88,13 @@ func (h *videoHandler) AllTvSeriesEpisodes(w http.ResponseWriter, r *http.Reques
 	}
 	response[name] = episodes
 	json.NewEncoder(w).Encode(response)
+}
+
+func (h *videoHandler) ServeMovie(w http.ResponseWriter, r *http.Request) {
+	movie := mux.Vars(r)["movie"]
+	videoDirPath := env.EnvString("video_dir")
+	if !strings.HasSuffix(videoDirPath, "/") {
+		videoDirPath += "/"
+	}
+	http.ServeFile(w, r, videoDirPath+movie)
 }
