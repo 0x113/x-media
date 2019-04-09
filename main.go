@@ -72,7 +72,7 @@ func main() {
 	router.HandleFunc("/api/movies", videoHandler.AllMovies).Methods("GET")
 	router.HandleFunc("/api/tvseries/update", videoHandler.UpdateTvSeries).Methods("GET")
 	router.HandleFunc("/api/tvseries", videoHandler.AllTvSeries).Methods("GET")
-	router.HandleFunc("/api/episodes", videoHandler.AllTvSeriesEpisodes).Methods("GET")
+	router.HandleFunc("/episodes/{name}", videoHandler.AllTvSeriesEpisodes).Methods("GET")
 
 	http.Handle("/", accessControl(router))
 	http.Handle("/api/", authRequired(router))

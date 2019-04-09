@@ -93,7 +93,7 @@ func (s *videoService) TvSeriesEpisodes(title string) ([]*Season, error) {
 
 	/* Get seasons */
 	var seasonsNames []string
-	tvSeriesDir := videoDirPath + strings.Join(strings.Split(title, " "), "_") + "/"
+	tvSeriesDir := videoDirPath + title + "/"
 	files, err := ioutil.ReadDir(tvSeriesDir)
 	if err != nil {
 		return nil, err

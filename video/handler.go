@@ -3,6 +3,8 @@ package video
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type VideoHandler interface {
@@ -72,13 +74,14 @@ func (h *videoHandler) AllTvSeries(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *videoHandler) AllTvSeriesEpisodes(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
 	response := make(map[string]interface{})
-	episodes, err := h.videoService.TvSeriesEpisodes(r.FormValue("name"))
+	episodes, err := h.videoService.TvSeriesEpisodes(name)
 	if err != nil {
 		response["error"] = "Unable to get episodes"
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-	response[r.FormValue("name")] = episodes
+	response[name] = episodes
 	json.NewEncoder(w).Encode(response)
 }
