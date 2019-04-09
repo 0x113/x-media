@@ -15,7 +15,7 @@ type VideoService interface {
 	AllMovies() ([]*Movie, error)
 	SaveTVShows() error
 	AllTvSeries() ([]*TVSeries, error)
-	TvSeriesEpisodes(title string) ([]string, error)
+	TvSeriesEpisodes(title string) ([]*Season, error)
 }
 
 type videoService struct {
@@ -85,8 +85,49 @@ func (s *videoService) AllTvSeries() ([]*TVSeries, error) {
 	return s.repo.FindAllTvSeries()
 }
 
-func (s *videoService) TvSeriesEpisodes(title string) ([]string, error) {
-	return []string{""}, nil
+func (s *videoService) TvSeriesEpisodes(title string) ([]*Season, error) {
+	videoDirPath := env.EnvString("video_dir")
+	if !strings.HasSuffix(videoDirPath, "/") {
+		videoDirPath += "/"
+	}
+
+	/* Get seasons */
+	var seasonsNames []string
+	tvSeriesDir := videoDirPath + strings.Join(strings.Split(title, " "), "_") + "/"
+	files, err := ioutil.ReadDir(tvSeriesDir)
+	if err != nil {
+		return nil, err
+	}
+	for _, f := range files {
+		if f.IsDir() {
+			seasonsNames = append(seasonsNames, f.Name())
+		}
+	}
+
+	/* Get season episodes */
+	var seasons []*Season
+	for _, s := range seasonsNames {
+		files, err := ioutil.ReadDir(tvSeriesDir + s)
+		if err != nil {
+			return nil, err
+		}
+		// get episodes
+		var episodes []string
+		for _, f := range files {
+			if f.IsDir() {
+				continue
+			}
+			episodes = append(episodes, f.Name())
+		}
+		// add season to list
+		s := Season{
+			Name:     s,
+			Episodes: episodes,
+		}
+		seasons = append(seasons, &s)
+	}
+
+	return seasons, nil
 }
 
 func (s *videoService) getVideos(videoDirPath string) ([]string, error) {

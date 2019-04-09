@@ -14,6 +14,8 @@ type VideoHandler interface {
 	UpdateTvSeries(w http.ResponseWriter, r *http.Request)
 	// AllTvSeries returns all tv series in json format
 	AllTvSeries(w http.ResponseWriter, r *http.Request)
+	// TvSeriesEpisodes returns list of episodes for certain tv series
+	AllTvSeriesEpisodes(w http.ResponseWriter, r *http.Request)
 }
 
 type videoHandler struct {
@@ -66,5 +68,17 @@ func (h *videoHandler) AllTvSeries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response["tv_series"] = tvSeries
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *videoHandler) AllTvSeriesEpisodes(w http.ResponseWriter, r *http.Request) {
+	response := make(map[string]interface{})
+	episodes, err := h.videoService.TvSeriesEpisodes(r.FormValue("name"))
+	if err != nil {
+		response["error"] = "Unable to get episodes"
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	response[r.FormValue("name")] = episodes
 	json.NewEncoder(w).Encode(response)
 }
