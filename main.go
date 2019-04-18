@@ -64,7 +64,7 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true)
 
 	/* authentication routes */
-	router.HandleFunc("/user/create", authHandler.Create).Methods("POST", "GET")
+	router.HandleFunc("/user/create", authHandler.Create).Methods("POST")
 	router.HandleFunc("/user/token/generate", authHandler.GenerateJWT).Methods("POST")
 
 	/* video routes */
@@ -76,7 +76,7 @@ func main() {
 	router.HandleFunc("/api/movies/{movie}", videoHandler.ServeMovie).Methods("GET")
 
 	http.Handle("/", accessControl(router))
-	http.Handle("/api/", authRequired(router))
+	http.Handle("/api/", accessControl(authRequired(router)))
 
 	log.Infoln("Launching server on port :8000")
 	if err := http.ListenAndServe(":8000", nil); err != nil {
@@ -97,7 +97,7 @@ func accessControl(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization")
 
 		if r.Method == "OPTIONS" {
 			return
