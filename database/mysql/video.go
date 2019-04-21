@@ -83,7 +83,7 @@ func (r *videoRepository) FindAllTvSeries() ([]*video.TVSeries, error) {
 	var tvSeries []*video.TVSeries
 	for rows.Next() {
 		series := new(video.TVSeries)
-		if err := rows.Scan(&series.SeriesID, &series.Title, &series.Description, &series.Director, &series.Genre, &series.EpisodeDuration, &series.Rate, &series.ReleaseDate, &series.PosterPath); err != nil {
+		if err := rows.Scan(&series.SeriesID, &series.Title, &series.Description, &series.Director, &series.Genre, &series.EpisodeDuration, &series.Rate, &series.ReleaseDate, &series.DirName, &series.PosterPath); err != nil {
 			return nil, err
 		}
 		tvSeries = append(tvSeries, series)
