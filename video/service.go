@@ -305,8 +305,6 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	}
 	description := descriptionHTML.Text()
 
-	log.Infoln(fileName)
-
 	movie := Movie{
 		Title:       title,
 		Description: description,
