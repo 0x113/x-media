@@ -305,6 +305,8 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	}
 	description := descriptionHTML.Text()
 
+	log.Infoln(fileName)
+
 	movie := Movie{
 		Title:       title,
 		Description: description,
@@ -325,6 +327,7 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 		EpisodeDuration: movieDuration,
 		Rate:            movieRateFloat,
 		ReleaseDate:     movieReleaseDate,
+		DirName:         fileName,
 		PosterPath:      moviePoster,
 	}
 	return &movie, &tvSeries, nil

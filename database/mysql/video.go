@@ -57,14 +57,14 @@ func (r *videoRepository) FindAllMovies() ([]*video.Movie, error) {
 }
 
 func (r *videoRepository) SaveTvSeries(tvSeries *video.TVSeries) error {
-	query := "INSERT INTO series (title, description, director, genre, episode_duration, rate, release_date, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, description=?, director=?, genre=?, episode_duration=?, rate=?, release_date=?, poster_path=?"
+	query := "INSERT INTO series (title, description, director, genre, episode_duration, rate, release_date, dir_name, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, description=?, director=?, genre=?, episode_duration=?, rate=?, release_date=?, dir_name=?, poster_path=?"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		log.Errorf("Error while preparing statement: %s", err.Error())
 		return err
 	}
 
-	_, err = stmt.Exec(tvSeries.Title, tvSeries.Description, tvSeries.Director, tvSeries.Genre, tvSeries.EpisodeDuration, tvSeries.Rate, tvSeries.ReleaseDate, tvSeries.PosterPath, tvSeries.Title, tvSeries.Description, tvSeries.Director, tvSeries.Genre, tvSeries.EpisodeDuration, tvSeries.Rate, tvSeries.ReleaseDate, tvSeries.PosterPath)
+	_, err = stmt.Exec(tvSeries.Title, tvSeries.Description, tvSeries.Director, tvSeries.Genre, tvSeries.EpisodeDuration, tvSeries.Rate, tvSeries.ReleaseDate, tvSeries.DirName, tvSeries.PosterPath, tvSeries.Title, tvSeries.Description, tvSeries.Director, tvSeries.Genre, tvSeries.EpisodeDuration, tvSeries.Rate, tvSeries.ReleaseDate, tvSeries.DirName, tvSeries.PosterPath)
 	if err != nil {
 		log.Errorf("Error while executing statement: %s", err.Error())
 		return err

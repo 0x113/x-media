@@ -24,6 +24,7 @@ type TVSeries struct {
 	EpisodeDuration string  `json:"episode_duration"`
 	Rate            float64 `json:"rate"`
 	ReleaseDate     string  `json:"release_date"`
+	DirName         string  `json:"dir_name"`
 	PosterPath      string  `json:"poster_path"`
 }
 
