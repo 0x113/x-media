@@ -1,6 +1,7 @@
 package video
 
 import (
+	"errors"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -16,6 +17,7 @@ type VideoService interface {
 	SaveTVShows() error
 	AllTvSeries() ([]*TVSeries, error)
 	TvSeriesEpisodes(title string) ([]*Season, error)
+	MovieSubtitles(title string) (string, error)
 }
 
 type videoService struct {
@@ -329,6 +331,28 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 		PosterPath:      moviePoster,
 	}
 	return &movie, &tvSeries, nil
+}
+
+func (s *videoService) MovieSubtitles(title string) (string, error) {
+	subDirPath := env.EnvString("movies_sub_dir")
+	if !strings.HasSuffix(subDirPath, "/") {
+		subDirPath += "/"
+	}
+
+	subFileName := strings.Replace(title, ".mp4", ".vtt", -1)
+
+	files, err := ioutil.ReadDir(subDirPath)
+	if err != nil {
+		return "", err
+	}
+	for _, f := range files {
+		if strings.HasSuffix(f.Name(), ".vtt") && f.Name() == subFileName {
+			log.Infof("Found subtitles for movie %s", title)
+			return subDirPath + subFileName, nil
+		}
+	}
+	log.Errorf("Cannot find subtitles file for movie %s", title)
+	return "", errors.New("Unable to find subtitles for movie")
 }
 
 func (s *videoService) removeFromArray(str string, toRemove []string) string {

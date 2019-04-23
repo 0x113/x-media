@@ -22,6 +22,8 @@ type VideoHandler interface {
 	AllTvSeriesEpisodes(w http.ResponseWriter, r *http.Request)
 	// ServeMovie returns movie as html5 video
 	ServeMovie(w http.ResponseWriter, r *http.Request)
+	// ServeMovieSubtitles returns movie subtitles file
+	ServeMovieSubtitles(w http.ResponseWriter, r *http.Request)
 }
 
 type videoHandler struct {
@@ -97,4 +99,16 @@ func (h *videoHandler) ServeMovie(w http.ResponseWriter, r *http.Request) {
 		videoDirPath += "/"
 	}
 	http.ServeFile(w, r, videoDirPath+movie)
+}
+
+func (h *videoHandler) ServeMovieSubtitles(w http.ResponseWriter, r *http.Request) {
+	title := mux.Vars(r)["movie"]
+	response := make(map[string]interface{})
+	subtitles, err := h.videoService.MovieSubtitles(title)
+	if err != nil {
+		response["error"] = "Unable to get movie subtitles"
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	http.ServeFile(w, r, subtitles)
 }
