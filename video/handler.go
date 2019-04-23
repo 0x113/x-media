@@ -3,9 +3,7 @@ package video
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
-	"github.com/0x113/x-media/env"
 	"github.com/gorilla/mux"
 )
 
@@ -94,11 +92,8 @@ func (h *videoHandler) AllTvSeriesEpisodes(w http.ResponseWriter, r *http.Reques
 
 func (h *videoHandler) ServeMovie(w http.ResponseWriter, r *http.Request) {
 	movie := mux.Vars(r)["movie"]
-	videoDirPath := env.EnvString("video_dir")
-	if !strings.HasSuffix(videoDirPath, "/") {
-		videoDirPath += "/"
-	}
-	http.ServeFile(w, r, videoDirPath+movie)
+	moviePath := h.videoService.MoviePath(movie)
+	http.ServeFile(w, r, moviePath)
 }
 
 func (h *videoHandler) ServeMovieSubtitles(w http.ResponseWriter, r *http.Request) {

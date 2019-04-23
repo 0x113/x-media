@@ -17,6 +17,7 @@ type VideoService interface {
 	SaveTVShows() error
 	AllTvSeries() ([]*TVSeries, error)
 	TvSeriesEpisodes(title string) ([]*Season, error)
+	MoviePath(title string) string
 	MovieSubtitles(title string) (string, error)
 }
 
@@ -331,6 +332,16 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 		PosterPath:      moviePoster,
 	}
 	return &movie, &tvSeries, nil
+}
+
+func (s *videoService) MoviePath(title string) string {
+	videoDirPath := env.EnvString("video_dir")
+	if !strings.HasSuffix(videoDirPath, "/") {
+		videoDirPath += "/"
+	}
+
+	return videoDirPath + title
+
 }
 
 func (s *videoService) MovieSubtitles(title string) (string, error) {
