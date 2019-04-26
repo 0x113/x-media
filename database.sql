@@ -2,6 +2,13 @@ CREATE DATABASE IF NOT EXISTS xmedia;
 
 USE xmedia;
 
+CREATE TABLE IF NOT EXISTS user (
+    user_id int NOT NULL AUTO_INCREMENT,
+    username varchar(255) NOT NULL UNIQUE,
+    password varchar(500) NOT NULL,
+    PRIMARY KEY (user_id)
+);
+
 CREATE TABLE IF NOT EXISTS movie (
     movie_id int NOT NULL AUTO_INCREMENT,
     title varchar(255) NOT NULL,
