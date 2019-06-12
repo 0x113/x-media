@@ -62,7 +62,7 @@ func (s *authService) getToken(user *User) (string, error) {
 		"id":       user.ID,
 		"username": user.Username,
 		"type":     "user",
-		"exp":      time.Now().Add(5 * time.Minute).Unix(),
+		"exp":      time.Now().Add(168 * time.Hour).Unix(), //TODO: Change for 5 minutes this is just for example
 	})
 
 	/* Sign the token with key */

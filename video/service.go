@@ -349,8 +349,12 @@ func (s *videoService) MovieSubtitles(title string) (string, error) {
 	if !strings.HasSuffix(subDirPath, "/") {
 		subDirPath += "/"
 	}
-
-	subFileName := strings.Replace(title, ".mp4", ".vtt", -1)
+	var subFileName string
+	if strings.Contains(title, ".mkv") {
+		subFileName = strings.Replace(title, ".mkv", ".vtt", -1)
+	} else {
+		subFileName = strings.Replace(title, ".mp4", ".vtt", -1)
+	}
 
 	files, err := ioutil.ReadDir(subDirPath)
 	if err != nil {

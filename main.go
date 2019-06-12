@@ -13,8 +13,8 @@ import (
 	"github.com/0x113/x-media/env"
 	"github.com/0x113/x-media/video"
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/go-chi/chi"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -61,24 +61,34 @@ func main() {
 	videoService := video.NewVideoService(videoRepo)
 	videoHandler := video.NewVideoHandler(videoService)
 
-	router := mux.NewRouter().StrictSlash(true)
+	/* frontend */
+	//frotendService := frontend.NewFrontendService()
+	//frontendHandler := frontend.NewFrontendHandler(frotendService)
+
+	r := chi.NewRouter()
 
 	/* authentication routes */
-	router.HandleFunc("/user/create", authHandler.Create).Methods("POST")
-	router.HandleFunc("/user/token/generate", authHandler.GenerateJWT).Methods("POST")
+	r.Post("/user/create", authHandler.Create)
+	r.Post("/user/token/generate", authHandler.GenerateJWT)
 
 	/* video routes */
-	router.HandleFunc("/api/movies/update", videoHandler.UpdateMovies).Methods("GET")
-	router.HandleFunc("/api/movies", videoHandler.AllMovies).Methods("GET")
-	router.HandleFunc("/movies/{movie}", videoHandler.ServeMovie).Methods("GET")
-	router.HandleFunc("/subtitles/{movie}", videoHandler.ServeMovieSubtitles).Methods("GET")
+	r.Get("/api/movies/update", videoHandler.UpdateMovies)
+	r.Get("/api/movies", videoHandler.AllMovies)
+	r.Get("/movies/{movie}", videoHandler.ServeMovie)
+	r.Get("/subtitles/{movie}", videoHandler.ServeMovieSubtitles)
 
-	router.HandleFunc("/api/tvseries/update", videoHandler.UpdateTvSeries).Methods("GET")
-	router.HandleFunc("/api/tvseries", videoHandler.AllTvSeries).Methods("GET")
-	router.HandleFunc("/api/episodes/{name}", videoHandler.AllTvSeriesEpisodes).Methods("GET")
+	r.Get("/api/tvseries/update", videoHandler.UpdateTvSeries)
+	r.Get("/api/tvseries", videoHandler.AllTvSeries)
+	r.Get("/api/episodes/{name}", videoHandler.AllTvSeriesEpisodes)
 
-	http.Handle("/", accessControl(router))
-	http.Handle("/api/", accessControl(authRequired(router)))
+	/* frontend routes */
+	http.Handle("/", http.FileServer(http.Dir("./dist")))
+
+	http.Handle("/user/", accessControl(r))
+	http.Handle("/movies/", accessControl(r))
+	http.Handle("/subtitles/", accessControl(r))
+
+	http.Handle("/api/", accessControl(authRequired(r)))
 
 	log.Infoln("Launching server on port :8000")
 	if err := http.ListenAndServe(":8000", nil); err != nil {

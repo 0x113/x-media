@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi"
 )
 
 type VideoHandler interface {
@@ -78,7 +78,7 @@ func (h *videoHandler) AllTvSeries(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *videoHandler) AllTvSeriesEpisodes(w http.ResponseWriter, r *http.Request) {
-	name := mux.Vars(r)["name"]
+	name := chi.URLParam(r, "name")
 	response := make(map[string]interface{})
 	episodes, err := h.videoService.TvSeriesEpisodes(name)
 	if err != nil {
@@ -91,13 +91,13 @@ func (h *videoHandler) AllTvSeriesEpisodes(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *videoHandler) ServeMovie(w http.ResponseWriter, r *http.Request) {
-	movie := mux.Vars(r)["movie"]
+	movie := chi.URLParam(r, "movie")
 	moviePath := h.videoService.MoviePath(movie)
 	http.ServeFile(w, r, moviePath)
 }
 
 func (h *videoHandler) ServeMovieSubtitles(w http.ResponseWriter, r *http.Request) {
-	title := mux.Vars(r)["movie"]
+	title := chi.URLParam(r, "movie")
 	response := make(map[string]interface{})
 	subtitles, err := h.videoService.MovieSubtitles(title)
 	if err != nil {
