@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS movie (
     release_date DATE NOT NULL,
     file_name varchar(255) NOT NULL UNIQUE,
     poster_path varchar(255) NOT NULL,
+    cast TEXT NOT NULL,
     PRIMARY KEY (movie_id)
 );
 
@@ -37,4 +38,3 @@ CREATE TABLE IF NOT EXISTS series (
     poster_path varchar(255),
     PRIMARY KEY (series_id)
 );
-

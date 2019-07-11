@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	"github.com/0x113/x-media/video"
 	log "github.com/sirupsen/logrus"
@@ -18,14 +19,22 @@ func NewMySQLVideoRepository(db *sql.DB) video.VideoRepository {
 }
 
 func (r *videoRepository) SaveMovie(movie *video.Movie) error {
-	query := "INSERT INTO movie (title, description, director, genre, duration, rate, release_date, file_name, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, description=?, director=?, genre=?, duration=?, rate=?, release_date=?, file_name=?, poster_path=?"
+	query := "INSERT INTO movie (title, description, director, genre, duration, rate, release_date, file_name, poster_path, cast) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, description=?, director=?, genre=?, duration=?, rate=?, release_date=?, file_name=?, poster_path=?, cast=?"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		log.Errorf("Error while preparing statement: %s", err.Error())
 		return err
 	}
 
-	_, err = stmt.Exec(movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.FileName, movie.PosterPath, movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.FileName, movie.PosterPath)
+	// convert cast to JSON and then to string TODO: change it
+	jsonBytes, err := json.Marshal(movie.Cast)
+	if err != nil {
+		log.Errorf("Error while converting struct to JSON: %s", err.Error())
+		return err
+	}
+	movieCastString := string(jsonBytes)
+
+	_, err = stmt.Exec(movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.FileName, movie.PosterPath, movieCastString, movie.Title, movie.Description, movie.Director, movie.Genre, movie.Duration, movie.Rate, movie.ReleaseDate, movie.FileName, movie.PosterPath, movieCastString)
 	if err != nil {
 		log.Errorf("Error while executing statement: %s", err.Error())
 		return err
@@ -46,8 +55,14 @@ func (r *videoRepository) FindAllMovies() ([]*video.Movie, error) {
 	var movies []*video.Movie
 	for rows.Next() {
 		movie := new(video.Movie)
-		if err := rows.Scan(&movie.MovieID, &movie.Title, &movie.Description, &movie.Director, &movie.Genre, &movie.Duration, &movie.Rate, &movie.ReleaseDate, &movie.FileName, &movie.PosterPath); err != nil {
+		var movieCastString string
+		if err := rows.Scan(&movie.MovieID, &movie.Title, &movie.Description, &movie.Director, &movie.Genre, &movie.Duration, &movie.Rate, &movie.ReleaseDate, &movie.FileName, &movie.PosterPath, &movieCastString); err != nil {
 			log.Errorf("Error while scanning for movie: %s", err.Error())
+			return nil, err
+		}
+		err := json.Unmarshal([]byte(movieCastString), &movie.Cast)
+		if err != nil {
+			log.Errorf("Error while unmarshalling struct: %s", err.Error())
 			return nil, err
 		}
 		movies = append(movies, movie)

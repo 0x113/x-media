@@ -12,6 +12,7 @@ type Movie struct {
 	ReleaseDate string  `json:"release_date"`
 	FileName    string  `json:"file_name"`
 	PosterPath  string  `json:"poster_path"`
+	Cast        []*Role `json:"cast"`
 }
 
 // TvSeries represents model for tv series
@@ -32,4 +33,11 @@ type TVSeries struct {
 type Season struct {
 	Name     string   `json:"name"`
 	Episodes []string `json:"episodes"`
+}
+
+// Role represents model for role
+type Role struct {
+	ActorName       string `json:"actor_name"`
+	ActorPictureURL string `json:"actor_picture_url"`
+	Character       string `json:"character"`
 }
