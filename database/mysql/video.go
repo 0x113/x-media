@@ -71,6 +71,25 @@ func (r *videoRepository) FindAllMovies() ([]*video.Movie, error) {
 	return movies, nil
 }
 
+func (r *videoRepository) GetMovieById(id string) (*video.Movie, error) {
+	query := "SELECT * FROM movie WHERE movie_id = ?"
+
+	movie := new(video.Movie)
+	var movieCastString string
+	err := r.db.QueryRow(query, id).Scan(&movie.MovieID, &movie.Title, &movie.Description, &movie.Director, &movie.Genre, &movie.Duration, &movie.Rate, &movie.ReleaseDate, &movie.FileName, &movie.PosterPath, &movieCastString)
+	if err != nil {
+		log.Errorf("Error while executing statemant: %s", err.Error())
+		return nil, err
+	}
+	// convert cast string to struct
+	err = json.Unmarshal([]byte(movieCastString), &movie.Cast)
+	if err != nil {
+		log.Errorf("Error while unmarshalling struct: %s", err.Error())
+		return nil, err
+	}
+	return movie, nil
+}
+
 func (r *videoRepository) SaveTvSeries(tvSeries *video.TVSeries) error {
 	query := "INSERT INTO series (title, description, director, genre, episode_duration, rate, release_date, dir_name, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, description=?, director=?, genre=?, episode_duration=?, rate=?, release_date=?, dir_name=?, poster_path=?"
 	stmt, err := r.db.Prepare(query)

@@ -74,6 +74,7 @@ func main() {
 	/* video routes */
 	r.Get("/api/movies/update", videoHandler.UpdateMovies)
 	r.Get("/api/movies", videoHandler.AllMovies)
+	r.Get("/api/movies/{id}", videoHandler.MovieDetails)
 	r.Get("/movies/{movie}", videoHandler.ServeMovie)
 	r.Get("/subtitles/{movie}", videoHandler.ServeMovieSubtitles)
 

@@ -19,6 +19,7 @@ type VideoService interface {
 	TvSeriesEpisodes(title string) ([]*Season, error)
 	MoviePath(title string) string
 	MovieSubtitles(title string) (string, error)
+	GetMovie(id string) (*Movie, error)
 }
 
 type videoService struct {
@@ -445,4 +446,8 @@ func (s *videoService) removeFromArray(str string, toRemove []string) string {
 		}
 	}
 	return str
+}
+
+func (s *videoService) GetMovie(id string) (*Movie, error) {
+	return s.repo.GetMovieById(id)
 }

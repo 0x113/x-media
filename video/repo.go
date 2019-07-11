@@ -5,6 +5,8 @@ type VideoRepository interface {
 	SaveMovie(movie *Movie) error
 	// FindAllMovies returns list of all movies from the database
 	FindAllMovies() ([]*Movie, error)
+	// GetMovieById returns movie with certain id
+	GetMovieById(id string) (*Movie, error)
 	// SaveTvSeries saves tv series to the database
 	SaveTvSeries(tvSeries *TVSeries) error
 	// FindAllTvSeries returns list of all tv series from the database
