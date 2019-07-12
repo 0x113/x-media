@@ -80,6 +80,7 @@ func main() {
 
 	r.Get("/api/tvseries/update", videoHandler.UpdateTvSeries)
 	r.Get("/api/tvseries", videoHandler.AllTvSeries)
+	r.Get("/api/tvseries/{id}", videoHandler.TvSeriesDetails)
 	r.Get("/api/episodes/{name}", videoHandler.AllTvSeriesEpisodes)
 
 	/* frontend routes */

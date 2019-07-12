@@ -11,4 +11,6 @@ type VideoRepository interface {
 	SaveTvSeries(tvSeries *TVSeries) error
 	// FindAllTvSeries returns list of all tv series from the database
 	FindAllTvSeries() ([]*TVSeries, error)
+	// GetTvSeriesById returns tv series with certain id
+	GetTvSeriesById(id string) (*TVSeries, error)
 }

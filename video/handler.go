@@ -20,6 +20,8 @@ type VideoHandler interface {
 	AllTvSeries(w http.ResponseWriter, r *http.Request)
 	// TvSeriesEpisodes returns list of episodes for certain tv series
 	AllTvSeriesEpisodes(w http.ResponseWriter, r *http.Request)
+	// TvSeriesDetails returns tv series details
+	TvSeriesDetails(w http.ResponseWriter, r *http.Request)
 	// ServeMovie returns movie as html5 video
 	ServeMovie(w http.ResponseWriter, r *http.Request)
 	// ServeMovieSubtitles returns movie subtitles file
@@ -120,4 +122,16 @@ func (h *videoHandler) MovieDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(movie)
+}
+
+func (h *videoHandler) TvSeriesDetails(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	response := make(map[string]interface{})
+	tvSeries, err := h.videoService.GetTvSeries(id)
+	if err != nil {
+		response["error"] = "Unable to get tv series details"
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	json.NewEncoder(w).Encode(tvSeries)
 }

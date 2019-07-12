@@ -20,6 +20,7 @@ type VideoService interface {
 	MoviePath(title string) string
 	MovieSubtitles(title string) (string, error)
 	GetMovie(id string) (*Movie, error)
+	GetTvSeries(id string) (*TVSeries, error)
 }
 
 type videoService struct {
@@ -450,4 +451,8 @@ func (s *videoService) removeFromArray(str string, toRemove []string) string {
 
 func (s *videoService) GetMovie(id string) (*Movie, error) {
 	return s.repo.GetMovieById(id)
+}
+
+func (s *videoService) GetTvSeries(id string) (*TVSeries, error) {
+	return s.repo.GetTvSeriesById(id)
 }
