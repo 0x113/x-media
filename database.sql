@@ -36,5 +36,6 @@ CREATE TABLE IF NOT EXISTS series (
     release_date DATE NOT NULL,
     dir_name varchar(255) NOT NULL UNIQUE,
     poster_path varchar(255),
+    cast TEXT NOT NULL,
     PRIMARY KEY (series_id)
 );

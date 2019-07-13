@@ -159,7 +159,7 @@ func (s *videoService) getTvSeries(tvSeriesDirPath string) ([]string, error) {
 		return nil, err
 	}
 	for _, f := range files {
-		if f.IsDir() && f.Name() != "sub" {
+		if f.IsDir() && f.Name() != "sub" && f.Name() != "scripts" {
 			tvSeries = append(tvSeries, f.Name())
 		}
 	}
@@ -175,12 +175,11 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	var url string
 
 	// if file is probably tv series
-	if !strings.Contains(toSearch, "mp4") {
+	if !strings.Contains(fileName, "mp4") {
 		url = "https://filmweb.pl/serials/search?q=" + toSearch
+	} else {
+		url = "https://filmweb.pl/search?q=" + toSearch
 	}
-	url = "https://filmweb.pl/search?q=" + toSearch
-
-	url = strings.Replace(url, ".mp4", "", -1)
 
 	res, err := soup.Get(url)
 	if err != nil {
@@ -190,13 +189,9 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	doc := soup.HTMLParse(res)
 
 	/* Get movie card and check for errors. */
-	movieCard := doc.Find("div", "class", "wrapperContent__content")
+	movieCard := doc.Find("ul", "class", "hits")
 	if movieCard.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie card")
-		return nil, nil, err
-	}
-	movieCard = movieCard.Find("ul", "class", "resultsList")
-	if movieCard.Error != nil {
+		log.Println(url)
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find results list")
 		return nil, nil, err
 	}
@@ -320,61 +315,63 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 
 	castDoc := soup.HTMLParse(castRes)
 
+	var cast []*Role
 	// Get cast table
 	castTable := castDoc.Find("table", "class", "filmCast")
 	if castTable.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find cast table")
-		return nil, nil, err
-	}
-	castTable = castTable.Find("tbody")
-	if castTable.Error != nil {
-		log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find cast table")
-		return nil, nil, err
-	}
-	rolesHTML := castTable.FindAll("tr")
-	var cast []*Role
-	for _, roleHTML := range rolesHTML {
-		if roleHTML.Error != nil {
-			log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find table rows for a cast")
-			return nil, nil, err
-		}
-		castProperties := roleHTML.FindAll("a")
-		actorPictureHTML := castProperties[0]
-		if actorPictureHTML.Error != nil {
-			log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find actor picture")
-			return nil, nil, err
-		}
-		actorPictureHTML = actorPictureHTML.Find("img")
-		if actorPictureHTML.Error != nil {
-			log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find actor picture")
-			return nil, nil, err
-		}
-		actorName := castProperties[0].Attrs()["title"]
-		// Get picture and real actor name
-		actorPictureURL := actorPictureHTML.Attrs()["src"]
-		if strings.HasSuffix(actorPictureURL, "plug.svg") {
-			actorPictureURL = "-"
-		} else {
-			actorPictureArr := strings.Split(actorPictureURL, ".")
-			actorPictureArr[3] = "1"
-			actorPictureURL = strings.Join(actorPictureArr, ".")
-		}
+		//	return nil, nil, err
+	} else {
 
-		characterHTML := roleHTML.Find("span")
-		if characterHTML.Error != nil {
-			log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find character")
+		castTable = castTable.Find("tbody")
+		if castTable.Error != nil {
+			log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find cast table")
 			return nil, nil, err
 		}
-		var character string
-		character = characterHTML.Text()
+		rolesHTML := castTable.FindAll("tr")
+		for _, roleHTML := range rolesHTML {
+			if roleHTML.Error != nil {
+				log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find table rows for a cast")
+				return nil, nil, err
+			}
+			castProperties := roleHTML.FindAll("a")
+			actorPictureHTML := castProperties[0]
+			if actorPictureHTML.Error != nil {
+				log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find actor picture")
+				return nil, nil, err
+			}
+			actorPictureHTML = actorPictureHTML.Find("img")
+			if actorPictureHTML.Error != nil {
+				log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find actor picture")
+				return nil, nil, err
+			}
+			actorName := castProperties[0].Attrs()["title"]
+			// Get picture and real actor name
+			actorPictureURL := actorPictureHTML.Attrs()["src"]
+			if strings.HasSuffix(actorPictureURL, "plug.svg") {
+				actorPictureURL = "-"
+			} else {
+				actorPictureArr := strings.Split(actorPictureURL, ".")
+				actorPictureArr[3] = "1"
+				actorPictureURL = strings.Join(actorPictureArr, ".")
+			}
 
-		role := &Role{
-			ActorName:       actorName,
-			ActorPictureURL: actorPictureURL,
-			Character:       character,
+			characterHTML := roleHTML.Find("span")
+			if characterHTML.Error != nil {
+				log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find character")
+				return nil, nil, err
+			}
+			var character string
+			character = characterHTML.Text()
+
+			role := &Role{
+				ActorName:       actorName,
+				ActorPictureURL: actorPictureURL,
+				Character:       character,
+			}
+
+			cast = append(cast, role)
 		}
-
-		cast = append(cast, role)
 	}
 
 	movie := Movie{
@@ -400,6 +397,7 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 		ReleaseDate:     movieReleaseDate,
 		DirName:         fileName,
 		PosterPath:      moviePoster,
+		Cast:            cast,
 	}
 	return &movie, &tvSeries, nil
 }

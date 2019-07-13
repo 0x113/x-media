@@ -91,14 +91,22 @@ func (r *videoRepository) GetMovieById(id string) (*video.Movie, error) {
 }
 
 func (r *videoRepository) SaveTvSeries(tvSeries *video.TVSeries) error {
-	query := "INSERT INTO series (title, description, director, genre, episode_duration, rate, release_date, dir_name, poster_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, description=?, director=?, genre=?, episode_duration=?, rate=?, release_date=?, dir_name=?, poster_path=?"
+	query := "INSERT INTO series (title, description, director, genre, episode_duration, rate, release_date, dir_name, poster_path, cast) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title=?, description=?, director=?, genre=?, episode_duration=?, rate=?, release_date=?, dir_name=?, poster_path=?, cast=?"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
 		log.Errorf("Error while preparing statement: %s", err.Error())
 		return err
 	}
 
-	_, err = stmt.Exec(tvSeries.Title, tvSeries.Description, tvSeries.Director, tvSeries.Genre, tvSeries.EpisodeDuration, tvSeries.Rate, tvSeries.ReleaseDate, tvSeries.DirName, tvSeries.PosterPath, tvSeries.Title, tvSeries.Description, tvSeries.Director, tvSeries.Genre, tvSeries.EpisodeDuration, tvSeries.Rate, tvSeries.ReleaseDate, tvSeries.DirName, tvSeries.PosterPath)
+	// convert cast to JSON and then to string TODO: change it
+	jsonBytes, err := json.Marshal(tvSeries.Cast)
+	if err != nil {
+		log.Errorf("Error while converting struct to JSON: %s", err.Error())
+		return err
+	}
+	castString := string(jsonBytes)
+
+	_, err = stmt.Exec(tvSeries.Title, tvSeries.Description, tvSeries.Director, tvSeries.Genre, tvSeries.EpisodeDuration, tvSeries.Rate, tvSeries.ReleaseDate, tvSeries.DirName, tvSeries.PosterPath, castString, tvSeries.Title, tvSeries.Description, tvSeries.Director, tvSeries.Genre, tvSeries.EpisodeDuration, tvSeries.Rate, tvSeries.ReleaseDate, tvSeries.DirName, tvSeries.PosterPath, castString)
 	if err != nil {
 		log.Errorf("Error while executing statement: %s", err.Error())
 		return err
@@ -131,9 +139,17 @@ func (r *videoRepository) GetTvSeriesById(id string) (*video.TVSeries, error) {
 	query := "SELECT * FROM series WHERE series_id = ?"
 
 	series := new(video.TVSeries)
-	err := r.db.QueryRow(query, id).Scan(&series.SeriesID, &series.Title, &series.Description, &series.Director, &series.Genre, &series.EpisodeDuration, &series.Rate, &series.ReleaseDate, &series.DirName, &series.PosterPath)
+	var castString string
+	err := r.db.QueryRow(query, id).Scan(&series.SeriesID, &series.Title, &series.Description, &series.Director, &series.Genre, &series.EpisodeDuration, &series.Rate, &series.ReleaseDate, &series.DirName, &series.PosterPath, &castString)
 	if err != nil {
 		log.Errorf("Error while executing statement: %s", err.Error())
+		return nil, err
+	}
+
+	// convert cast back to JSON
+	err = json.Unmarshal([]byte(castString), &series.Cast)
+	if err != nil {
+		log.Errorf("Error while converting cast to JSON: %s", err.Error())
 		return nil, err
 	}
 
