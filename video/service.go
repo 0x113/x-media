@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+  "sync"
 
 	"github.com/0x113/x-media/env"
 	"github.com/anaskhan96/soup"
@@ -33,11 +34,19 @@ func NewVideoService(repo VideoRepository) VideoService {
 	}
 }
 
+func (s *videoService) update(movieTitle string, wg *sync.WaitGroup) {
+  movie, _, err := s.getMovieAndTvSeriesInfo(movieTitle)
+	if err == nil {
+		s.repo.SaveMovie(movie)
+		wg.Done() 
+	}
+}
+
 func (s *videoService) Save() error {
 	log.Infoln("Updating movie database...")
 
 	// check if video dir path ends with slash
-	videoDirPath := env.EnvString("video_dir")
+	videoDirPath := env.EnvString("VIDEO_DIR")
 	if !strings.HasSuffix(videoDirPath, "/") {
 		videoDirPath += "/"
 	}
@@ -46,13 +55,14 @@ func (s *videoService) Save() error {
 		log.Error("Unable to get list of movies")
 		return err
 	}
+
+  var wg sync.WaitGroup
+
 	for _, v := range videos {
-		movie, _, err := s.getMovieAndTvSeriesInfo(v)
-		if err != nil || movie == nil {
-			continue
-		}
-		s.repo.SaveMovie(movie)
+    wg.Add(1)
+    go s.update(v, &wg)
 	}
+  wg.Wait()
 	log.Infoln("The movie database has been updated.")
 	return nil
 }
@@ -60,7 +70,7 @@ func (s *videoService) Save() error {
 func (s *videoService) SaveTVShows() error {
 	log.Infoln("Updating series database... ")
 	// check if video dir path ends with slash
-	videoDirPath := env.EnvString("video_dir")
+	videoDirPath := env.EnvString("VIDEO_DIR")
 	if !strings.HasSuffix(videoDirPath, "/") {
 		videoDirPath += "/"
 	}
@@ -91,7 +101,7 @@ func (s *videoService) AllTvSeries() ([]*TVSeries, error) {
 }
 
 func (s *videoService) TvSeriesEpisodes(title string) ([]*Season, error) {
-	videoDirPath := env.EnvString("video_dir")
+	videoDirPath := env.EnvString("VIDEO_DIR")
 	if !strings.HasSuffix(videoDirPath, "/") {
 		videoDirPath += "/"
 	}
@@ -119,10 +129,9 @@ func (s *videoService) TvSeriesEpisodes(title string) ([]*Season, error) {
 		// get episodes
 		var episodes []string
 		for _, f := range files {
-			if f.IsDir() {
-				continue
+			if strings.HasSuffix(f.Name(), "mp4") || strings.HasSuffix(f.Name(), "mkv") {
+				episodes = append(episodes, f.Name())
 			}
-			episodes = append(episodes, f.Name())
 		}
 		// add season to list
 		s := Season{
@@ -191,7 +200,6 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	/* Get movie card and check for errors. */
 	movieCard := doc.Find("ul", "class", "hits")
 	if movieCard.Error != nil {
-		log.Println(url)
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find results list")
 		return nil, nil, err
 	}
@@ -403,7 +411,7 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 }
 
 func (s *videoService) MoviePath(title string) string {
-	videoDirPath := env.EnvString("video_dir")
+	videoDirPath := env.EnvString("VIDEO_DIR")
 	if !strings.HasSuffix(videoDirPath, "/") {
 		videoDirPath += "/"
 	}
@@ -413,7 +421,7 @@ func (s *videoService) MoviePath(title string) string {
 }
 
 func (s *videoService) MovieSubtitles(title string) (string, error) {
-	subDirPath := env.EnvString("movies_sub_dir")
+	subDirPath := env.EnvString("MOVIES_SUB_DIR")
 	if !strings.HasSuffix(subDirPath, "/") {
 		subDirPath += "/"
 	}
