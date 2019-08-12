@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
-  "sync"
+	"sync"
 
 	"github.com/0x113/x-media/env"
 	"github.com/anaskhan96/soup"
@@ -35,10 +35,13 @@ func NewVideoService(repo VideoRepository) VideoService {
 }
 
 func (s *videoService) update(movieTitle string, wg *sync.WaitGroup) {
-  movie, _, err := s.getMovieAndTvSeriesInfo(movieTitle)
+	movie, _, err := s.getMovieAndTvSeriesInfo(movieTitle) // returns *Movie, *TVSeries, error
 	if err == nil {
-		s.repo.SaveMovie(movie)
-		wg.Done() 
+		err = s.repo.SaveMovie(movie)
+		// if there is no error while saving movie
+		if err == nil {
+			wg.Done()
+		}
 	}
 }
 
@@ -56,13 +59,14 @@ func (s *videoService) Save() error {
 		return err
 	}
 
-  var wg sync.WaitGroup
+	var wg sync.WaitGroup
 
 	for _, v := range videos {
-    wg.Add(1)
-    go s.update(v, &wg)
+		wg.Add(1)
+		go s.update(v, &wg)
 	}
-  wg.Wait()
+
+	wg.Wait()
 	log.Infoln("The movie database has been updated.")
 	return nil
 }
