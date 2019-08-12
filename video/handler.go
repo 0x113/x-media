@@ -50,8 +50,10 @@ func (h *videoHandler) UpdateMovies(w http.ResponseWriter, r *http.Request) {
 
 func (h *videoHandler) AllMovies(w http.ResponseWriter, r *http.Request) {
 	movies, err := h.videoService.AllMovies()
+	response := make(map[string]interface{})
 	if err != nil {
-		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		response["error"] = "Unable to get all movies"
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 	json.NewEncoder(w).Encode(movies)
