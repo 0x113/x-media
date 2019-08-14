@@ -34,10 +34,9 @@ func main() {
 	dbName := os.Getenv("DB_NAME")
 	jwtSecret := os.Getenv("JWT_SECRET")
   videoDir := os.Getenv("VIDEO_DIR")
-	port := os.Getenv("PORT")
 
 	/* Check env variables */
-	if dbUser == "" || dbPass == "" || dbHost == "" || dbPort == "" || dbName == "" || jwtSecret == "" || videoDir == "" || port == "" {
+	if dbUser == "" || dbPass == "" || dbHost == "" || dbPort == "" || dbName == "" || jwtSecret == "" || videoDir == "" {
 		log.Error("Environment variables can not be empty.")
 		log.Println("List of environment variables: ")
 		log.Printf("DB_USER: %s\n", dbUser)
@@ -47,7 +46,6 @@ func main() {
 		log.Printf("DB_NAME: %s\n", dbName)
 		log.Printf("JWT_SECRET: %s", jwtSecret)
 		log.Printf("VIDEO_DIR: %s", videoDir)
-		log.Printf("PORT: %s", port)
 		os.Exit(0)
 	}
 
@@ -95,8 +93,8 @@ func main() {
 
 	http.Handle("/api/", accessControl(authRequired(r)))
 
-	log.Infoln("Launching server on port :" + port)
-	if err := http.ListenAndServe(":" + port, nil); err != nil {
+	log.Infoln("Launching server on port :8000")
+	if err := http.ListenAndServe(":8000", nil); err != nil {
 		log.Errorf("ListenAndServe: %s", err)
 	}
 }
