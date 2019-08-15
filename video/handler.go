@@ -41,21 +41,24 @@ func NewVideoHandler(videoService VideoService) VideoHandler {
 func (h *videoHandler) UpdateMovies(w http.ResponseWriter, r *http.Request) {
 	err := h.videoService.Save()
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 		return
 	}
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Successfully saved"})
-
 }
 
 func (h *videoHandler) AllMovies(w http.ResponseWriter, r *http.Request) {
 	movies, err := h.videoService.AllMovies()
 	response := make(map[string]interface{})
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		response["error"] = "Unable to get all movies"
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(movies)
 }
 
@@ -63,10 +66,12 @@ func (h *videoHandler) UpdateTvSeries(w http.ResponseWriter, r *http.Request) {
 	err := h.videoService.SaveTVShows()
 	response := make(map[string]string)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		response["error"] = err.Error()
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
 	response["message"] = "Successfully updated tv series"
 	json.NewEncoder(w).Encode(response)
 }
@@ -75,10 +80,12 @@ func (h *videoHandler) AllTvSeries(w http.ResponseWriter, r *http.Request) {
 	response := make(map[string]interface{})
 	tvSeries, err := h.videoService.AllTvSeries()
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		response["error"] = "Unable to get all tv series"
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
 	response["tv_series"] = tvSeries
 	json.NewEncoder(w).Encode(response)
 }
@@ -88,10 +95,12 @@ func (h *videoHandler) AllTvSeriesEpisodes(w http.ResponseWriter, r *http.Reques
 	response := make(map[string]interface{})
 	episodes, err := h.videoService.TvSeriesEpisodes(name)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		response["error"] = "Unable to get episodes"
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
 	response[name] = episodes
 	json.NewEncoder(w).Encode(response)
 }
@@ -107,6 +116,7 @@ func (h *videoHandler) ServeMovieSubtitles(w http.ResponseWriter, r *http.Reques
 	response := make(map[string]interface{})
 	subtitles, err := h.videoService.MovieSubtitles(title)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		response["error"] = "Unable to get movie subtitles"
 		json.NewEncoder(w).Encode(response)
 		return
@@ -119,10 +129,12 @@ func (h *videoHandler) MovieDetails(w http.ResponseWriter, r *http.Request) {
 	response := make(map[string]interface{})
 	movie, err := h.videoService.GetMovie(id)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		response["error"] = "Unable to get movie details"
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(movie)
 }
 
@@ -131,9 +143,11 @@ func (h *videoHandler) TvSeriesDetails(w http.ResponseWriter, r *http.Request) {
 	response := make(map[string]interface{})
 	tvSeries, err := h.videoService.GetTvSeries(id)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		response["error"] = "Unable to get tv series details"
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(tvSeries)
 }

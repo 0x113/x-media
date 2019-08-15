@@ -27,9 +27,11 @@ func (h *authHandler) Create(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&user)
 	err := h.authService.CreateUser(&user)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Unable to create user"})
 		return
 	}
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Successfully Created!"})
 }
 
@@ -42,6 +44,6 @@ func (h *authHandler) GenerateJWT(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"error": "Unable to generate jwt"})
 		return
 	}
-
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }
