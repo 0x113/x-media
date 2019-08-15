@@ -21,7 +21,7 @@ services:
       - ${MOVIES_SUB_DIR}:/data/sub
 
   db:
-    image: mysql:5.7
+    image: mysql:8.0
     ports:
       - 6603:3306
     environment:
