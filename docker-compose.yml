@@ -1,0 +1,35 @@
+version: '3.1'
+
+services:
+  x-media-service:
+    build: .
+    restart: always
+    ports:
+      - 8000:8000
+    links:
+      - db
+    environment:
+      - DB_PORT=3306
+      - DB_HOST=db
+      - DB_NAME=xmedia
+      - DB_PASS=${MYSQL_ROOT_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - VIDEO_DIR=/data/movies
+      - MOVIES_SUB_DIR=/data/sub
+    volumes:
+      - ${VIDEO_DIR}:/data/movies
+      - ${MOVIES_SUB_DIR}:/data/sub
+
+  db:
+    image: mysql:5.7
+    ports:
+      - 6603:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - xmedia-db:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/init.sql
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+
+volumes:
+  xmedia-db:
