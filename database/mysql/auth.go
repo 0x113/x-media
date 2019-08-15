@@ -5,7 +5,6 @@ import (
 
 	"github.com/0x113/x-media/auth"
 	_ "github.com/go-sql-driver/mysql"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -32,17 +31,11 @@ func (r *authRepository) Create(user *auth.User) error {
 		return err
 	}
 
-	res, err := stmt.Exec(user.Username, hashedPassword)
+	_, err = stmt.Exec(user.Username, hashedPassword)
 	if err != nil {
 		return err
 	}
 
-	newID, err := res.LastInsertId()
-	if err != nil {
-		return err
-	}
-
-	log.Infof("Created user with id %d", newID)
 	return nil
 }
 

@@ -28,29 +28,38 @@ func NewAuthService(repo AuthRepository) AuthService {
 }
 
 func (s *authService) CreateUser(user *User) error {
-	return s.repo.Create(user)
+	if err := s.repo.Create(user); err != nil {
+		log.Errorf("Unable to create user [username=%s]: %v", user.Username, err)
+		return err
+	}
+	log.Infof("Successfully created user [id=%d, username=%s]", user.ID, user.Username)
+	return nil
 }
 
 func (s *authService) LoginUser(username, password string) (string, error) {
 	user, err := s.repo.GetUser(username)
 	if err != nil {
+		log.Errorf("Unable to get user [username=%s] from databse: %v", username, err)
 		return "", err
 	}
 
 	if user == nil {
+		log.Errorf("Invalid username: %s", username)
 		return "", errors.New("Invalid username")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", err
-	}
-	token, err := s.getToken(user)
-	if err != nil {
-		log.WithFields(log.Fields{"user": username, "error": err.Error()}).Error("Unable to generate token")
+		log.Errorf("Entered password for user [id=%d, username=%s] is incorrect", user.ID, username)
 		return "", err
 	}
 
-	log.Infof("Generated token for user %s", username)
+	token, err := s.getToken(user)
+	if err != nil {
+		log.Errorf("Unable to generate token for user [id=%d, username=%s]: %v", user.ID, user.Username, err)
+		return "", err
+	}
+
+	log.Infof("Generated token for user [id=%d, username=%s]", user.ID, username)
 
 	return token, nil
 }
@@ -66,5 +75,10 @@ func (s *authService) getToken(user *User) (string, error) {
 	})
 
 	/* Sign the token with key */
-	return token.SignedString([]byte(env.EnvString("JWT_KEY")))
+	tokenStr, err := token.SignedString([]byte(env.EnvString("JWT_KEY")))
+	if err != nil {
+		log.Errorf("Unable to sign token for user [id=%d, username=%s]; %v", user.ID, user.Username, err)
+		return "", err
+	}
+	return tokenStr, nil
 }
