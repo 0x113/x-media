@@ -66,6 +66,5 @@ func (s *authService) getToken(user *User) (string, error) {
 	})
 
 	/* Sign the token with key */
-	return token.SignedString([]byte(env.EnvString("jwt_key")))
-
+	return token.SignedString([]byte(env.EnvString("JWT_KEY")))
 }
