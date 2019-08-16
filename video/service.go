@@ -34,14 +34,34 @@ func NewVideoService(repo VideoRepository) VideoService {
 	}
 }
 
-func (s *videoService) update(movieTitle string) error {
-	movie, _, err := s.getMovieAndTvSeriesInfo(movieTitle) // returns *Movie, *TVSeries, error
+func (s *videoService) updateMovie(videoFileName string) error {
+	movie, _, err := s.getMovieAndTvSeriesInfo(videoFileName) // returns *Movie, *TVSeries, error
 
 	if err != nil {
 		return err
 	}
 
-	return s.repo.SaveMovie(movie)
+	if err := s.repo.SaveMovie(movie); err != nil {
+		return err
+	}
+
+	log.Infof("Successfully updated movie [title=%s, file_name=%s]", movie.Title, videoFileName)
+	return nil
+}
+
+func (s *videoService) updateTvSeries(tvSeriesDir string) error {
+	_, tvSeries, err := s.getMovieAndTvSeriesInfo(tvSeriesDir)
+
+	if err != nil {
+		return err
+	}
+
+	if err := s.repo.SaveTvSeries(tvSeries); err != nil {
+		return err
+	}
+
+	log.Infof("Successfully updated TV series [title=%s, tv_series_dir=%s]", tvSeries.Title, tvSeriesDir)
+	return nil
 }
 
 func (s *videoService) Save() error {
@@ -65,7 +85,7 @@ func (s *videoService) Save() error {
 		go func(video string) {
 			defer wg.Done()
 
-			if err := s.update(video); err != nil {
+			if err := s.updateMovie(video); err != nil {
 				log.Errorf("Unable to update movie [file_name=%s]: %v", video, err)
 			}
 		}(v)
@@ -90,14 +110,20 @@ func (s *videoService) SaveTVShows() error {
 		return err
 	}
 
+	var wg sync.WaitGroup
+
 	for _, t := range tvSeriesList {
-		_, tvSeries, err := s.getMovieAndTvSeriesInfo(t)
-		if err != nil || tvSeries == nil {
-			log.Errorf("Unable to get info about tv series [dir_name=%s]: %v", t, err)
-			continue
-		}
-		s.repo.SaveTvSeries(tvSeries)
+		wg.Add(1)
+		go func(tvSeriesDir string) {
+			defer wg.Done()
+
+			if err := s.updateTvSeries(tvSeriesDir); err != nil {
+				log.Errorf("Unable to update TV series [tv_series_dir=%s]: %v", tvSeriesDir, err)
+			}
+		}(t)
 	}
+
+	wg.Wait()
 
 	log.Infoln("TV series database has been updated.")
 	return nil
