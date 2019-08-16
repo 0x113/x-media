@@ -54,7 +54,7 @@ func (s *videoService) Save() error {
 	}
 	videos, err := s.getVideos(videoDirPath)
 	if err != nil {
-		log.Error("Unable to get list of movies")
+		log.Errorln("Unable to get list of movies")
 		return err
 	}
 
@@ -66,10 +66,9 @@ func (s *videoService) Save() error {
 			defer wg.Done()
 
 			if err := s.update(video); err != nil {
-				log.Errorf("Unable to update movie: %v", err)
+				log.Errorf("Unable to update movie [file_name=%s]: %v", video, err)
 			}
 		}(v)
-
 	}
 
 	wg.Wait()
@@ -87,27 +86,42 @@ func (s *videoService) SaveTVShows() error {
 
 	tvSeriesList, err := s.getTvSeries(videoDirPath)
 	if err != nil {
-		log.Error("Unable to get tv series list")
+		log.Errorln("Unable to get tv series list")
 		return err
 	}
 
 	for _, t := range tvSeriesList {
 		_, tvSeries, err := s.getMovieAndTvSeriesInfo(t)
 		if err != nil || tvSeries == nil {
+			log.Errorf("Unable to get info about tv series [dir_name=%s]: %v", t, err)
 			continue
 		}
 		s.repo.SaveTvSeries(tvSeries)
 	}
+
 	log.Infoln("TV series database has been updated.")
 	return nil
 }
 
 func (s *videoService) AllMovies() ([]*Movie, error) {
-	return s.repo.FindAllMovies()
+	movies, err := s.repo.FindAllMovies()
+	if err != nil {
+		log.Errorf("Unable to get all movies: %v", err)
+		return nil, err
+	}
+
+	log.Infoln("Successfully found all movies")
+	return movies, nil
 }
 
 func (s *videoService) AllTvSeries() ([]*TVSeries, error) {
-	return s.repo.FindAllTvSeries()
+	tvSeries, err := s.repo.FindAllTvSeries()
+	if err != nil {
+		log.Errorf("Unable to get all tv series: %v", err)
+		return nil, err
+	}
+	log.Infoln("Successfully found all TV series")
+	return tvSeries, nil
 }
 
 func (s *videoService) TvSeriesEpisodes(title string) ([]*Season, error) {
@@ -121,6 +135,7 @@ func (s *videoService) TvSeriesEpisodes(title string) ([]*Season, error) {
 	tvSeriesDir := videoDirPath + title + "/"
 	files, err := ioutil.ReadDir(tvSeriesDir)
 	if err != nil {
+		log.Errorf("Error while scanning seasons for tv series [tv_series_dir=%s]: %v", tvSeriesDir, err)
 		return nil, err
 	}
 	for _, f := range files {
@@ -134,6 +149,7 @@ func (s *videoService) TvSeriesEpisodes(title string) ([]*Season, error) {
 	for _, s := range seasonsNames {
 		files, err := ioutil.ReadDir(tvSeriesDir + s)
 		if err != nil {
+			log.Errorf("Error while scanning for episodes [episodes_dir=%s]: %v", tvSeriesDir + s, err) 
 			return nil, err
 		}
 		// get episodes
@@ -151,6 +167,7 @@ func (s *videoService) TvSeriesEpisodes(title string) ([]*Season, error) {
 		seasons = append(seasons, &s)
 	}
 
+	log.Infof("Successfully found TV series episodes [tv_series_title=%s]", title)
 	return seasons, nil
 }
 
@@ -160,6 +177,7 @@ func (s *videoService) getVideos(videoDirPath string) ([]string, error) {
 	var videos []string
 	files, err := ioutil.ReadDir(videoDirPath)
 	if err != nil {
+		log.Errorf("Error while scanning for videos [video_dir=%s]: %v", videoDirPath, err)
 		return nil, err
 	}
 	for _, f := range files {
@@ -175,6 +193,7 @@ func (s *videoService) getTvSeries(tvSeriesDirPath string) ([]string, error) {
 	var tvSeries []string
 	files, err := ioutil.ReadDir(tvSeriesDirPath)
 	if err != nil {
+		log.Errorf("Error while scanning for tv series [tv_series_dir=%s]: %v", tvSeriesDirPath, err)
 		return nil, err
 	}
 	for _, f := range files {
@@ -202,6 +221,7 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 
 	res, err := soup.Get(url)
 	if err != nil {
+		log.Errorf("Unable to get [url=%s]: %v", url, err)
 		return nil, nil, err
 	}
 
@@ -444,11 +464,12 @@ func (s *videoService) MovieSubtitles(title string) (string, error) {
 
 	files, err := ioutil.ReadDir(subDirPath)
 	if err != nil {
+		log.Errorf("Error while scanning for subtitles [sub_dir=%s]: %v", subDirPath, err)
 		return "", err
 	}
 	for _, f := range files {
 		if strings.HasSuffix(f.Name(), ".vtt") && f.Name() == subFileName {
-			log.Infof("Found subtitles for movie %s", title)
+			log.Infof("Found subtitles for movie [title=%s]", title)
 			return subDirPath + subFileName, nil
 		}
 	}
@@ -466,9 +487,21 @@ func (s *videoService) removeFromArray(str string, toRemove []string) string {
 }
 
 func (s *videoService) GetMovie(id string) (*Movie, error) {
-	return s.repo.GetMovieById(id)
+	movie, err := s.repo.GetMovieById(id)
+	if err != nil {
+		log.Errorf("Unable to get movie [id=%s]: %v", id, err)
+		return nil, err
+	}
+	log.Infof("Successfully found movie [id=%s, title=%s]", id, movie.Title)
+	return movie, nil
 }
 
 func (s *videoService) GetTvSeries(id string) (*TVSeries, error) {
-	return s.repo.GetTvSeriesById(id)
+	tvSeries, err := s.repo.GetTvSeriesById(id)
+	if err != nil {
+		log.Errorf("Unable to get TV series [id=%s]: %v", id, err)
+		return nil, err
+	}
+	log.Infof("Successfully found TV series [id=%s, title=%s]", id, tvSeries.Title)
+	return tvSeries, nil
 }
