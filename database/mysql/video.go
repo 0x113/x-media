@@ -114,6 +114,20 @@ func (r *videoRepository) SaveTvSeries(tvSeries *video.TVSeries) error {
 	return nil
 }
 
+func (r *videoRepository) RemoveTvSeriesByDirName(dirName string) error {
+	query := "DELETE FROM series WHERE dir_name = ?"
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(dirName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *videoRepository) FindAllTvSeries() ([]*video.TVSeries, error) {
 	rows, err := r.db.Query("SELECT * FROM series")
 	if err != nil {

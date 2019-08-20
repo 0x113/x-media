@@ -140,6 +140,35 @@ func (s *videoService) SaveTVShows() error {
 
 	var wg sync.WaitGroup
 
+	// get tv shows from db to check if any has been removed
+	tvShows, err := s.repo.FindAllTvSeries()
+	if err != nil {
+		log.Errorf("Unable to get list of tv series: %v", err)
+		return err
+	}
+
+	// get all dir names
+	var dirNames []string
+	for _, s := range tvShows {
+		dirNames = append(dirNames, s.DirName)
+	}
+
+	// check if any was removed
+	var removedDirs []string
+	for _, d := range dirNames {
+		if !s.sliceContains(tvSeriesList, d) {
+			if err := s.repo.RemoveTvSeriesByDirName(d); err != nil {
+				log.Errorf("Unable to remove tv series [dir_name=%s]: %v", d, err)
+				return err
+			}
+			removedDirs = append(removedDirs, d)
+		}
+	}
+
+	if len(removedDirs) > 0 {
+		log.Warnf("Removed tv shows since last update: [%s]", strings.Join(removedDirs, ", "))
+	}
+
 	for _, t := range tvSeriesList {
 		wg.Add(1)
 		go func(tvSeriesDir string) {
