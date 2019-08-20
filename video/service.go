@@ -80,6 +80,34 @@ func (s *videoService) Save() error {
 
 	var wg sync.WaitGroup
 
+	// get movies from db to check if any have been removed
+	moviesInDb, err := s.repo.FindAllMovies()
+	if err != nil {
+		log.Errorln("Unable to get list of movies")
+		return err
+	}
+
+	// get movies file names
+	var fileNames []string
+	for _, m := range moviesInDb {
+		fileNames = append(fileNames, m.FileName)
+	}
+
+	// get list of removed files
+	var removedFiles []string
+	for _, f := range fileNames {
+		if !s.sliceContains(videos, f) {
+			if err := s.repo.RemoveMovieByFileName(f); err != nil {
+				log.Errorf("Unable to remove file [file_name=%s]: %v", f, err)
+				continue
+			}
+			removedFiles = append(removedFiles, f)
+		}
+	}
+	if len(removedFiles) > 0 {
+		log.Warnf("Removed files since last update: [%s]", strings.Join(removedFiles, ", "))
+	}
+
 	for _, v := range videos {
 		wg.Add(1)
 		go func(video string) {
@@ -175,7 +203,7 @@ func (s *videoService) TvSeriesEpisodes(title string) ([]*Season, error) {
 	for _, s := range seasonsNames {
 		files, err := ioutil.ReadDir(tvSeriesDir + s)
 		if err != nil {
-			log.Errorf("Error while scanning for episodes [episodes_dir=%s]: %v", tvSeriesDir + s, err) 
+			log.Errorf("Error while scanning for episodes [episodes_dir=%s]: %v", tvSeriesDir+s, err)
 			return nil, err
 		}
 		// get episodes
@@ -510,6 +538,15 @@ func (s *videoService) removeFromArray(str string, toRemove []string) string {
 		}
 	}
 	return str
+}
+
+func (s *videoService) sliceContains(slice []string, item string) bool {
+	for _, i := range slice {
+		if item == i {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *videoService) GetMovie(id string) (*Movie, error) {

@@ -3,6 +3,8 @@ package video
 type VideoRepository interface {
 	// SaveMovie saves movie to the database
 	SaveMovie(movie *Movie) error
+	// RemoveMovieByFileName removes movie from the database
+	RemoveMovieByFileName(movieFileName string) error
 	// FindAllMovies returns list of all movies from the database
 	FindAllMovies() ([]*Movie, error)
 	// GetMovieById returns movie with certain id

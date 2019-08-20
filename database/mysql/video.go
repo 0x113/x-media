@@ -38,6 +38,20 @@ func (r *videoRepository) SaveMovie(movie *video.Movie) error {
 	return nil
 }
 
+func (r *videoRepository) RemoveMovieByFileName(fileName string) error {
+	query := "DELETE FROM movie WHERE file_name = ?"
+	stmt, err := r.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec(fileName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *videoRepository) FindAllMovies() ([]*video.Movie, error) {
 	rows, err := r.db.Query("SELECT * FROM movie")
 	if err != nil {
