@@ -105,7 +105,7 @@ func (s *videoService) Save() error {
 		}
 	}
 	if len(removedFiles) > 0 {
-		log.Warnf("Removed files since last update: [%s]", strings.Join(removedFiles, ", "))
+		log.Warnf("Movies removed since last update: [%s]", strings.Join(removedFiles, ", "))
 	}
 
 	for _, v := range videos {
@@ -166,7 +166,7 @@ func (s *videoService) SaveTVShows() error {
 	}
 
 	if len(removedDirs) > 0 {
-		log.Warnf("Removed tv shows since last update: [%s]", strings.Join(removedDirs, ", "))
+		log.Warnf("TV Series removed since last update: [%s]", strings.Join(removedDirs, ", "))
 	}
 
 	for _, t := range tvSeriesList {
