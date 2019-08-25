@@ -3,7 +3,6 @@ version: '3.1'
 services:
   x-media-service:
     build: .
-    restart: always
     ports:
       - 8000:8000
     links:
