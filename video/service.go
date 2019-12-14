@@ -3,6 +3,7 @@ package video
 import (
 	"errors"
 	"io/ioutil"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -35,6 +36,10 @@ func NewVideoService(repo VideoRepository) VideoService {
 }
 
 func (s *videoService) updateMovie(videoFileName string) error {
+	/*
+	_, _, _ = getMovieInfoFromTMDb(videoFileName) 
+	return nil
+	*/
 	movie, _, err := s.getMovieAndTvSeriesInfo(videoFileName) // returns *Movie, *TVSeries, error
 
 	if err != nil {
@@ -114,6 +119,7 @@ func (s *videoService) Save() error {
 			defer wg.Done()
 
 			if err := s.updateMovie(video); err != nil {
+				log.Infoln(video)
 				log.Errorf("Unable to update movie [file_name=%s]: %v", video, err)
 			}
 		}(v)
@@ -314,19 +320,19 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	movieCard := doc.Find("ul", "class", "hits")
 	if movieCard.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find results list")
-		return nil, nil, err
+		return nil, nil, movieCard.Error
 	}
 	movieCard = movieCard.Find("li")
 	if movieCard.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie")
-		return nil, nil, err
+		return nil, nil, movieCard.Error 
 	}
 
 	/* Get movie title */
 	titleHTML := movieCard.Find("data")
 	if titleHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie title")
-		return nil, nil, err
+		return nil, nil, titleHTML.Error
 	}
 	title := titleHTML.Attrs()["data-title"]
 
@@ -334,7 +340,7 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	movieReleaseDateHTML := movieCard.Find("div")
 	if movieReleaseDateHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie release date")
-		return nil, nil, err
+		return nil, nil, movieReleaseDateHTML.Error
 	}
 	movieReleaseDate := movieReleaseDateHTML.Attrs()["data-release"]
 
@@ -342,7 +348,7 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	movieDurationHTML := movieCard.Find("div", "class", "filmPreview__filmTime")
 	if movieDurationHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie duration")
-		return nil, nil, err
+		return nil, nil, movieDurationHTML.Error 
 	}
 	movieDuration := movieDurationHTML.Text()
 
@@ -350,25 +356,25 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	movieRateHTML := movieCard.Find("div", "class", "filmPreview__rateBox")
 	if movieRateHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie rate")
-		return nil, nil, err
+		return nil, nil, movieRateHTML.Error 
 	}
 	movieRate := movieRateHTML.Attrs()["data-rate"]
 	// convert movie rate to float
 	movieRateFloat, err := strconv.ParseFloat(movieRate, 64)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, err 
 	}
 
 	/* Get movie director */
 	movieDirectorHTML := movieCard.Find("div", "class", "filmPreview__info--directors")
-	if movieDurationHTML.Error != nil {
+	if movieDirectorHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie directors")
-		return nil, nil, err
+		return nil, nil, movieDirectorHTML.Error 
 	}
 	movieDirectorHTML = movieDirectorHTML.Find("a")
-	if movieDurationHTML.Error != nil {
+	if movieDirectorHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie directors")
-		return nil, nil, err
+		return nil, nil, movieDirectorHTML.Error
 	}
 	movieDirector := movieDirectorHTML.Attrs()["title"]
 
@@ -376,17 +382,17 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	movieGenreHTML := movieCard.Find("div", "class", "filmPreview__info--genres")
 	if movieGenreHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre")
-		return nil, nil, err
+		return nil, nil, movieGenreHTML.Error 
 	}
 	movieGenreHTML = movieGenreHTML.Find("ul")
 	if movieGenreHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre")
-		return nil, nil, err
+		return nil, nil, movieGenreHTML.Error
 	}
 	movieGenreHTML = movieGenreHTML.Find("a")
 	if movieGenreHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie genre")
-		return nil, nil, err
+		return nil, nil, movieGenreHTML.Error
 	}
 	movieGenre := movieGenreHTML.Text()
 
@@ -394,7 +400,7 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	moviePosterHTML := movieCard.Find("img", "class", "filmPoster__image")
 	if moviePosterHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie poster")
-		return nil, nil, err
+		return nil, nil, moviePosterHTML.Error 
 	}
 	moviePoster := moviePosterHTML.Attrs()["data-src"]
 	moviePoster = strings.Replace(moviePoster, "6.jpg", "3.jpg", -1)
@@ -403,7 +409,7 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	detailsLinkHTML := movieCard.Find("a", "class", "filmPreview__link")
 	if detailsLinkHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find details link")
-		return nil, nil, err
+		return nil, nil, detailsLinkHTML.Error
 	}
 	// Scrape details page
 	detailsURL := detailsLinkHTML.Attrs()["href"]
@@ -417,12 +423,12 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 	descriptionHTML := detailsDoc.Find("div", "class", "filmPlot")
 	if descriptionHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie description")
-		return nil, nil, err
+		return nil, nil, descriptionHTML.Error
 	}
 	descriptionHTML = descriptionHTML.Find("p")
 	if descriptionHTML.Error != nil {
 		log.WithFields(log.Fields{"movie": toSearch}).Error("Cannot find movie description")
-		return nil, nil, err
+		return nil, nil, descriptionHTML.Error
 	}
 	description := descriptionHTML.Text()
 
@@ -447,24 +453,24 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 		castTable = castTable.Find("tbody")
 		if castTable.Error != nil {
 			log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find cast table")
-			return nil, nil, err
+			return nil, nil, castTable.Error
 		}
 		rolesHTML := castTable.FindAll("tr")
 		for _, roleHTML := range rolesHTML {
 			if roleHTML.Error != nil {
 				log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find table rows for a cast")
-				return nil, nil, err
+				return nil, nil, roleHTML.Error 
 			}
 			castProperties := roleHTML.FindAll("a")
 			actorPictureHTML := castProperties[0]
 			if actorPictureHTML.Error != nil {
 				log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find actor picture")
-				return nil, nil, err
+				return nil, nil, actorPictureHTML.Error
 			}
 			actorPictureHTML = actorPictureHTML.Find("img")
 			if actorPictureHTML.Error != nil {
 				log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find actor picture")
-				return nil, nil, err
+				return nil, nil, actorPictureHTML.Error 
 			}
 			actorName := castProperties[0].Attrs()["title"]
 			// Get picture and real actor name
@@ -480,7 +486,7 @@ func (s *videoService) getMovieAndTvSeriesInfo(fileName string) (*Movie, *TVSeri
 			characterHTML := roleHTML.Find("span")
 			if characterHTML.Error != nil {
 				log.WithFields(log.Fields{"movie": toSearch}).Error("Unable to find character")
-				return nil, nil, err
+				return nil, nil, characterHTML.Error
 			}
 			var character string
 			character = characterHTML.Text()
@@ -596,4 +602,140 @@ func (s *videoService) GetTvSeries(id string) (*TVSeries, error) {
 	}
 	log.Infof("Successfully found TV series [id=%s, title=%s]", id, tvSeries.Title)
 	return tvSeries, nil
+}
+
+func getMovieInfoFromTMDb(fileName string) (*Movie, *TVSeries, error) {
+	// create title from file name
+	title := fileName
+	toRemove := []string{".NSB", ".mp4"}
+	for _, r := range toRemove {
+		title = strings.Replace(title, r, "", -1)
+	}
+
+	// remove year from title
+	titleSplited := strings.Split(title, ".")
+	titleSplited = titleSplited[:len(titleSplited)-1]
+	title = strings.Join(titleSplited, " ")
+
+	// create query
+	baseURL := "https://themoviedb.org"
+	query := url.QueryEscape(title)
+	reqURL := baseURL + "/search?query=" + query + "&language=en-US"
+
+	// get data
+	res, err := soup.Get(reqURL)
+	if err != nil {
+		log.Errorf("Unable to get response from themoviedb.org [file_name=%s]: %v", fileName, err)
+		return nil, nil, err
+	}
+	doc := soup.HTMLParse(res)
+
+	results := doc.Find("div", "class", "results")
+	if results.Error != nil {
+		log.Errorf("Cannot find results [file_name=%s]: %v", fileName, results.Error)
+		return nil, nil, results.Error 
+	}
+
+	firstItem := results.Find("div", "class", "item")
+	if firstItem.Error != nil {
+		log.Errorf("Cannot find first item in results [file_name=%s]: %v", fileName, firstItem.Error)
+		return nil, nil, firstItem.Error
+	}
+
+	// a html attribute which contains link to details page
+	aAttr := firstItem.Find("a")
+	if aAttr.Error != nil {
+		log.Errorf("Cannot find a attribute [file_name=%s]: %v", fileName, aAttr.Error)
+		return nil, nil, aAttr.Error 
+	}
+
+	detailsLink := aAttr.Attrs()["href"]
+
+	// get details like descriptoion, title etc.
+	detailsRes, err := soup.Get(baseURL + detailsLink)
+	if err != nil {
+		log.Errorf("Cannot open details page [file_name=%s]: %v", fileName, err)
+		return nil, nil, err
+	}
+	detailsDoc := soup.HTMLParse(detailsRes)
+
+	// get title
+	metaTitle := detailsDoc.Find("meta", "property", "og:title")
+	if metaTitle.Error != nil {
+		log.Errorf("Cannot find title [file_name=%s]: %v", fileName, metaTitle.Error)
+		return nil, nil, metaTitle.Error 
+	}
+	movieTitle := metaTitle.Attrs()["content"]
+
+	// description
+	metaDescription := detailsDoc.Find("meta", "name", "description")
+	if metaDescription.Error != nil {
+		log.Errorf("Cannot find description [file_name=%s]: %v", fileName, metaDescription.Error)
+		return nil, nil, metaDescription.Error
+	}
+	movieDescription := metaDescription.Attrs()["content"]
+
+	// poster
+	metaPoster := detailsDoc.Find("meta", "property", "og:image")
+	if metaPoster.Error != nil {
+		log.Errorf("Cannot find poster [file_name=%s]: %v", fileName, metaPoster.Error)
+		return nil, nil, metaPoster.Error
+	}
+	moviePoster := metaPoster.Attrs()["content"]
+
+	// genre
+	genresSection := detailsDoc.Find("section", "class", "genres")
+	if genresSection.Error != nil {
+		log.Errorf("Cannot find genres section [file_name=%s]: %v", fileName, genresSection.Error)
+		return nil, nil, genresSection.Error
+	}
+
+	genreAttr := genresSection.Find("a")
+	if genreAttr.Error != nil {
+		log.Errorf("Cannot find a attribute with genre [file_name=%s]: %v", fileName, genreAttr.Error)
+		return nil, nil, genreAttr.Error
+	}
+	movieGenre := genreAttr.Text()
+
+	// facts eg. release data, durtaion 
+	factsSection := detailsDoc.Find("section", "class", "split_column")
+	if factsSection.Error != nil {
+		log.Errorf("cannot find facts section [file_name=%s]: %v", fileName, factsSection.Error)
+		return nil, nil, factsSection.Error
+	}
+
+	// release date
+	releaseDate := detailsDoc.Find("span", "class", "release_date")
+	if releaseDate.Error != nil {
+		log.Errorf("Cannot find release date [file_name=%s]: %v", fileName, releaseDate.Error)
+		return nil, nil, releaseDate.Error
+	}
+	movieReleaseDateSlice := strings.Split(releaseDate.Text(), ")")
+	movieReleaseDate := strings.Replace(movieReleaseDateSlice[0], "(", "", -1)
+
+	// duration
+	details := factsSection.FindAll("p")
+	if len(details) < 7 {
+		log.Errorf("Unable to get list of detials [file_name=%s]: %v", fileName, errors.New("Less than 7 details"))
+		return nil, nil, errors.New("Less than 7 details")
+	}
+	duration := details[4]
+
+	log.Printf("%s --> %s", detailsLink, duration.Text())
+
+	movie := &Movie{
+		Title: movieTitle,
+		Description: movieDescription,
+		Director: "",
+		Genre: movieGenre,
+		Duration: "",
+		Rate: 1,
+		ReleaseDate: movieReleaseDate,
+		FileName: fileName,
+		PosterPath: moviePoster,
+		Cast: []*Role{},
+	}
+
+
+	return movie, nil, nil
 }
