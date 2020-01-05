@@ -1,4 +1,4 @@
-include .env
+include .env_make
 
 start:
 	@bash -c "$(MAKE) -s build start-server"
