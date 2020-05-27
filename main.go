@@ -27,15 +27,16 @@ func init() {
 
 func main() {
 	/* Get env variables */
+	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
 	dbHost := os.Getenv("DB_HOST")
 	dbName := os.Getenv("DB_NAME")
 	dbPort := os.Getenv("DB_PORT")
 	jwtSecret := os.Getenv("JWT_SECRET")
-  videoDir := os.Getenv("VIDEO_DIR")
+	videoDir := os.Getenv("VIDEO_DIR")
 
 	/* Check env variables */
-	if dbPass == "" || dbHost == "" || dbName == "" || dbPort == "" || jwtSecret == "" || videoDir == "" {
+	if dbUser == "" || dbPass == "" || dbHost == "" || dbName == "" || dbPort == "" || jwtSecret == "" || videoDir == "" {
 		log.Error("Environment variables can not be empty.")
 		log.Println("List of environment variables: ")
 		log.Printf("DB_PASS: %s\n", dbPass)
@@ -47,7 +48,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	conn := mysqlConnection(dbPass, dbHost, dbPort, dbName)
+	conn := mysqlConnection(dbUser, dbPass, dbHost, dbPort, dbName)
 	defer conn.Close()
 
 	/* authentication */
@@ -97,8 +98,8 @@ func main() {
 	}
 }
 
-func mysqlConnection(password, host, port, dbname string) *sql.DB {
-	sqlStmt := fmt.Sprintf("root:%s@tcp(%s:%s)/%s", password, host, port, dbname)
+func mysqlConnection(username, password, host, port, dbname string) *sql.DB {
+	sqlStmt := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", username, password, host, port, dbname)
 	db, err := sql.Open("mysql", sqlStmt)
 	if err != nil {
 		log.Errorf("Error while connection to the database: %s", err)
