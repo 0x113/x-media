@@ -47,7 +47,7 @@ func LoadConfig() error {
 
 	// set up logging
 	log.SetOutput(&lumberjack.Logger{
-		FileName:   Config.LogFilename,
+		Filename:   Config.LogFilename,
 		MaxSize:    Config.LogMaxSize,
 		MaxBackups: Config.LogMaxBackups,
 		MaxAge:     Config.LogMaxAge,
