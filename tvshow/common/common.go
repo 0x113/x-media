@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"io"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -45,14 +46,15 @@ func LoadConfig() error {
 		return err
 	}
 
-	// set up logging
-	log.SetOutput(&lumberjack.Logger{
+	// set up logging TODO: different foramatter for Stdout
+	multiWriter := io.MultiWriter(os.Stdout, &lumberjack.Logger{
 		Filename:   Config.LogFilename,
 		MaxSize:    Config.LogMaxSize,
 		MaxBackups: Config.LogMaxBackups,
 		MaxAge:     Config.LogMaxAge,
 	})
 	log.SetLevel(log.DebugLevel)
+	log.SetOutput(multiWriter)
 
 	// output in JSON format
 	log.SetFormatter(&log.JSONFormatter{})
