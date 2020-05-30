@@ -3,7 +3,7 @@
 <h4 align="center">Share videos in a fast, simple and nice way.</h4>
 
 ## :warning: UPDATE :warning:
-I am currently rewriting this to the microservices architecture, so it doesn't work.Sorry for the inconvenience.
+I am currently rewriting this to the microservices architecture, so it doesn't work now. Sorry for the inconvenience.
 
 ## How To Use
 To clone and run this application, you'll need [git](https://git-scm.com/), [docker](https://docker.com/) and [docker-compose](https://docs.docker.com/compose/install/). Follow this steps to make this work:
