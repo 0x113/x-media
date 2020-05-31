@@ -29,11 +29,6 @@ var (
 	Config *Configuration
 )
 
-// Collections names if user wants to use mongo
-const (
-	CollectionTVShow = "tvshows"
-)
-
 // LoadConfig loads configuration from the config file
 func LoadConfig() error {
 	file, err := os.Open("config/config.json")
