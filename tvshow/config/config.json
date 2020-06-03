@@ -6,5 +6,9 @@
 	"log_max_age": 30,
 	"db_addr": "localhost:27017",
 	"db_name": "xmedia_tvshow",
-	"db_password": ""
+	"db_username": "",
+	"db_password": "",
+	"tv_show_directories": [
+		"/home/y0x/Videos"
+	]
 }

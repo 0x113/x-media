@@ -22,6 +22,8 @@ type Configuration struct {
 	DbName     string `json:"db_name"`
 	DbUsername string `json:"db_username"`
 	DbPassword string `json:"db_password"`
+
+	TVShowDirectories []string `json:"tv_show_directories"`
 }
 
 // Config shares the global configuration
