@@ -8,7 +8,7 @@ type TVShow struct {
 	Name      string             `bson:"name" json:"name" validate:"required"`
 	Language  string             `bson:"language" json:"language" validate:"required"`
 	Genres    []string           `bson:"genres" json:"genres" validate:"required"`
-	Runtime   uint8              `bson:"runtime" json:"runtime" validate:"required"`
+	Runtime   int                `bson:"runtime" json:"runtime" validate:"required"`
 	Premiered string             `bson:"premiered" json:"premiered" validate:"required"`
 	Rating    float32            `bson:"rating" json:"rating" validate:"required"`
 	PosterURL string             `bson:"poster_url" json:"poster_url" validate:"required,url"`
