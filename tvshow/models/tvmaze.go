@@ -1,4 +1,4 @@
-package mocks
+package models
 
 // TVmazeTVShow information
 type TVmazeTVShow struct {
