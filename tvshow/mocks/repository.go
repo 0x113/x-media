@@ -1,7 +1,7 @@
 package mocks
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/0x113/x-media/tvshow/models"
 )
@@ -30,7 +30,7 @@ func NewMockTVShowRepository() *MockTVShowRepository {
 // Save tv show in memory
 func (r *MockTVShowRepository) Save(tvShow *models.TVShow) error {
 	if _, ok := r.tvShows[tvShow.Name]; ok {
-		return errors.New("TV Show already exists")
+		return fmt.Errorf("%s - show already exist", tvShow.Name)
 	}
 	r.tvShows[tvShow.Name] = tvShow
 	return nil
