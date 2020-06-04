@@ -20,12 +20,13 @@ type TVShowService interface {
 }
 
 type tvShowService struct {
+	client     utils.HttpClient
 	tvShowRepo data.TVShowRepository
 }
 
 // NewTVShowService creates new instance of TVShowService
-func NewTVShowService(tvShowRepo data.TVShowRepository) TVShowService {
-	return &tvShowService{tvShowRepo}
+func NewTVShowService(client utils.HttpClient, tvShowRepo data.TVShowRepository) TVShowService {
+	return &tvShowService{client, tvShowRepo}
 }
 
 // Save calls the db layer to save tv show
