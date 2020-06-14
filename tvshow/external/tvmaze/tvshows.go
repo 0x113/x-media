@@ -12,6 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// TODO: remove logging and move to the service
+
 // GetTVmazeTVShowInfo calls TVmaze api and returns new TVmaze object
 func GetTVmazeTVShowInfo(client utils.HttpClient, title string) (*models.TVmazeTVShow, error) {
 	query := url.QueryEscape(title)
