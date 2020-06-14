@@ -35,7 +35,7 @@ func GetTVmazeTVShowInfo(client utils.HttpClient, title string) (*models.TVmazeT
 	// check status code
 	if res.StatusCode != http.StatusOK {
 		log.Debugf("Expected status code: %d; got: %d", http.StatusOK, res.StatusCode)
-		return nil, err
+		return nil, fmt.Errorf("Expected 200 status code, got %d", res.StatusCode)
 	}
 	// decode
 	tvMazeResponse := []*models.TVmazeTVShow{}
