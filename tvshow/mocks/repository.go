@@ -38,5 +38,8 @@ func (r *MockTVShowRepository) Save(tvShow *models.TVShow) error {
 
 // GetByName returns tv show if exsits
 func (r *MockTVShowRepository) GetByName(name string) (*models.TVShow, error) {
-	return r.tvShows[name], nil
+	if tvShow, ok := r.tvShows[name]; ok {
+		return tvShow, nil
+	}
+	return nil, fmt.Errorf("Couldn't find show %s", name)
 }
