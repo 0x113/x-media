@@ -43,3 +43,12 @@ func (r *MockTVShowRepository) GetByName(name string) (*models.TVShow, error) {
 	}
 	return nil, fmt.Errorf("Couldn't find show %s", name)
 }
+
+// Update existing show
+func (r *MockTVShowRepository) Update(tvShow *models.TVShow) error {
+	if _, ok := r.tvShows[tvShow.Name]; !ok {
+		return fmt.Errorf("Couldn't find show %s", tvShow.Name)
+	}
+	r.tvShows[tvShow.Name] = tvShow
+	return nil
+}

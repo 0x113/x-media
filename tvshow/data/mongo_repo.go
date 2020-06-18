@@ -2,9 +2,11 @@ package data
 
 import (
 	"context"
+	"time"
 
 	"github.com/0x113/x-media/tvshow/databases"
 	"github.com/0x113/x-media/tvshow/models"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 const (
@@ -49,4 +51,25 @@ func (r *tvShowRepository) GetByName(name string) (*models.TVShow, error) {
 	}
 
 	return &tvShow, nil
+}
+
+// Update existing tv show
+func (r *tvShowRepository) Update(tvShow *models.TVShow) error {
+	sessionCopy := databases.Database.Session
+	defer sessionCopy.EndSession(context.TODO())
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	collection := sessionCopy.Client().Database(databases.Database.DbName).Collection(collectionName)
+
+	_, err := collection.UpdateOne(
+		ctx,
+		bson.M{"_id": tvShow.ID},
+		bson.M{"$set": tvShow},
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
