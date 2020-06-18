@@ -147,6 +147,7 @@ func (s *tvShowService) GetTVShowByName(name string) (*models.TVShow, error) {
 		log.Debugf("Unable to get tv show from the database; err: %v", err)
 		return nil, err
 	}
+	log.Infof("Successfully found tv show: %s", name)
 	return tvShow, nil
 }
 
