@@ -52,3 +52,12 @@ func (r *MockTVShowRepository) Update(tvShow *models.TVShow) error {
 	r.tvShows[tvShow.Name] = tvShow
 	return nil
 }
+
+// GetAll tv shows from memory
+func (r *MockTVShowRepository) GetAll() ([]*models.TVShow, error) {
+	var tvShows []*models.TVShow
+	for _, name := range r.tvShows {
+		tvShows = append(tvShows, name)
+	}
+	return tvShows, nil
+}

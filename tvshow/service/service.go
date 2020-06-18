@@ -23,6 +23,7 @@ type TVShowService interface {
 	UpdateTVShows() error
 	UpdateTVShow(name string, mutex *sync.Mutex, wg *sync.WaitGroup) error
 	GetTVShowByName(name string) (*models.TVShow, error)
+	GetAllTVShows() ([]*models.TVShow, error)
 }
 
 type tvShowService struct {
@@ -149,6 +150,18 @@ func (s *tvShowService) GetTVShowByName(name string) (*models.TVShow, error) {
 	}
 	log.Infof("Successfully found tv show: %s", name)
 	return tvShow, nil
+}
+
+// GetAllTVShows returns all tv show from the database
+func (s *tvShowService) GetAllTVShows() ([]*models.TVShow, error) {
+	tvShows, err := s.tvShowRepo.GetAll()
+	if err != nil {
+		log.Debugf("Couldn't get all tv shows from the database; err: %v", err)
+		return nil, err
+	}
+
+	log.Infof("Successfully found all the shows")
+	return tvShows, nil
 }
 
 // directoryExists checks if a directory exists and

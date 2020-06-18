@@ -211,3 +211,43 @@ func (suite *TVShowServiceTestSuite) TestGetTVShowByName() {
 		})
 	}
 }
+
+func (suite *TVShowServiceTestSuite) TestGetAllTVShows() {
+	suite.client = &mocks.MockClient{}
+	suite.tvShowService = service.NewTVShowService(suite.client, suite.tvShowRepo)
+
+	testCases := []struct {
+		name            string
+		expectedTVShows []*models.TVShow
+		wantErr         bool
+	}{
+		{
+			name: "Success",
+			expectedTVShows: []*models.TVShow{
+				&models.TVShow{
+					Name:      "BoJack Horseman",
+					Language:  "English",
+					Genres:    []string{"Comedy", "Drama"},
+					Runtime:   25,
+					Premiered: "2014-08-22",
+					Rating:    8.1,
+					PosterURL: "https://static.tvmaze.com/uploads/images/original_untouched/236/590384.jpg",
+					Summary:   "Meet the most beloved sitcom horse of the '90s, 20 years later.",
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.Run(tt.name, func() {
+			tvShows, err := suite.tvShowService.GetAllTVShows()
+			if tt.wantErr {
+				suite.NotNil(err)
+			} else {
+				suite.Nil(err)
+			}
+			suite.Equal(tt.expectedTVShows, tvShows)
+		})
+	}
+}
