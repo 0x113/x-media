@@ -17,6 +17,7 @@ import (
 // TVShowService describes a tv show service
 type TVShowService interface {
 	Save(tvShow *models.TVShow) error
+	GetTVShowByName(name string) (*models.TVShow, error)
 }
 
 type tvShowService struct {
@@ -44,6 +45,17 @@ func (s *tvShowService) Save(tvShow *models.TVShow) error {
 		return err
 	}
 	return nil
+}
+
+
+// GetTVShowByName returns tv show if exists
+func (s *tvShowService) GetTVShowByName(name string) (*models.TVShow, error) {
+	tvShow, err := s.tvShowRepo.GetByName(name)
+	if err != nil {
+		log.Debugf("Unable to get tv show from the database; err: %v", err)
+		return nil, err
+	}
+	return tvShow, nil
 }
 
 // directoryExists checks if a directory exists and

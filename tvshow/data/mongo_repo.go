@@ -34,3 +34,19 @@ func (r *tvShowRepository) Save(tvShow *models.TVShow) error {
 
 	return nil
 }
+
+// GetByName returns TVShow if exists and an error
+func (r *tvShowRepository) GetByName(name string) (*models.TVShow, error) {
+	sessionCopy := databases.Database.Session
+	defer sessionCopy.EndSession(context.TODO())
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	collection := sessionCopy.Client().Database(databases.Database.DbName).Collection(collectionName)
+
+	var tvShow models.TVShow
+	if err := collection.FindOne(ctx, bson.M{"name": name}).Decode(&tvShow); err != nil {
+		return nil, err
+	}
+
+	return &tvShow, nil
+}
