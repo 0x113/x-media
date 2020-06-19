@@ -9,4 +9,5 @@ type TVShowRepository interface {
 	Save(tvShow *models.TVShow) error
 	GetByName(name string) (*models.TVShow, error)
 	Update(tvShow *models.TVShow) error
+	GetAll() ([]*models.TVShow, error)
 }

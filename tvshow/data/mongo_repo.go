@@ -73,3 +73,22 @@ func (r *tvShowRepository) Update(tvShow *models.TVShow) error {
 
 	return nil
 }
+
+// GetAll returns all of the tv shows from the database
+func (r *tvShowRepository) GetAll() ([]*models.TVShow, error) {
+	sessionCopy := databases.Database.Session
+	defer sessionCopy.EndSession(context.TODO())
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	collection := sessionCopy.Client().Database(databases.Database.DbName).Collection(collectionName)
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	var tvShows []*models.TVShow
+	if err := cursor.All(ctx, &tvShows); err != nil {
+		return nil, err
+	}
+	return tvShows, nil
+}
