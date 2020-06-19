@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -75,8 +76,8 @@ func (s *tvShowService) UpdateTVShow(name string, mutex *sync.Mutex, wg *sync.Wa
 	// validate new TVShow object
 	validate := validator.New()
 	if err := validate.Struct(tvShow); err != nil {
-		log.Errorf("Couldn't validate tv show; err: %v", err)
-		return err
+		log.Errorf("Couldn't validate tv show[dir=%s]; err: %v", name, err)
+		return fmt.Errorf("Couldn't validate tv show [dir=%s]", name)
 	}
 
 	mutex.Lock()
