@@ -23,6 +23,7 @@ func NewMockTVShowRepository() *MockTVShowRepository {
 		Rating:    8.1,
 		PosterURL: "https://static.tvmaze.com/uploads/images/original_untouched/236/590384.jpg",
 		Summary:   "Meet the most beloved sitcom horse of the '90s, 20 years later.",
+		DirPath:   "testdata/three_shows/BoJack Horseman",
 	}
 	return &MockTVShowRepository{tvShows}
 }

@@ -17,7 +17,7 @@ func TestGetDirectories(t *testing.T) {
 		{
 			name:         "Success",
 			tvShowDirs:   []string{"testdata/three_shows", "testdata/two_shows_one_file"},
-			expectedDirs: []string{"BoJack Horseman", "The_Office", "Trailer.Park.Boys", "Rick and Morty", "The.Sopranos"},
+			expectedDirs: []string{"testdata/three_shows/BoJack Horseman", "testdata/three_shows/The_Office", "testdata/three_shows/Trailer.Park.Boys", "testdata/two_shows_one_file/Rick and Morty", "testdata/two_shows_one_file/The.Sopranos"},
 		},
 		{
 			name:         "Non-existent directory",

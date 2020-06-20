@@ -13,4 +13,5 @@ type TVShow struct {
 	Rating    float32            `bson:"rating" json:"rating" validate:"required"`
 	PosterURL string             `bson:"poster_url" json:"poster_url" validate:"required,url"`
 	Summary   string             `bson:"summary" json:"summary" validate:"required"`
+	DirPath   string             `bson:"dir_path" json:"dir_path" validate:"required"`
 }

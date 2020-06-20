@@ -21,8 +21,8 @@ import (
 // TVShowService describes a tv show service
 type TVShowService interface {
 	Save(tvShow *models.TVShow) error
-	UpdateTVShows() error
-	UpdateTVShow(name string, mutex *sync.Mutex, wg *sync.WaitGroup) error
+	UpdateAllTVShows() (map[string]string, map[string]string)
+	UpdateTVShow(name string, mutex *sync.Mutex) (*models.TVShow, error)
 	GetTVShowByName(name string) (*models.TVShow, error)
 	GetAllTVShows() ([]*models.TVShow, error)
 }
@@ -56,11 +56,13 @@ func (s *tvShowService) Save(tvShow *models.TVShow) error {
 
 // UpdateTVShow reads directory names, removes special char like "_,/"
 // and calls tvmaze api to get data
-func (s *tvShowService) UpdateTVShow(name string, mutex *sync.Mutex, wg *sync.WaitGroup) error {
+func (s *tvShowService) UpdateTVShow(dirPath string, mutex *sync.Mutex) (*models.TVShow, error) {
+	nameSplit := strings.Split(dirPath, "/")
+	name := createName(nameSplit[len(nameSplit)-1])
 	// get tv show data from TVmaze API
 	tvMazeInfo, err := tvmaze.GetTVmazeTVShowInfo(s.client, name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// create new TVShow object
 	tvShow := &models.TVShow{
@@ -72,12 +74,13 @@ func (s *tvShowService) UpdateTVShow(name string, mutex *sync.Mutex, wg *sync.Wa
 		Rating:    tvMazeInfo.Show.Rating.Average,
 		PosterURL: tvMazeInfo.Show.Image.Original,
 		Summary:   tvMazeInfo.Show.Summary,
+		DirPath:   dirPath,
 	}
 	// validate new TVShow object
 	validate := validator.New()
 	if err := validate.Struct(tvShow); err != nil {
 		log.Errorf("Couldn't validate tv show[dir=%s]; err: %v", name, err)
-		return fmt.Errorf("Couldn't validate tv show [dir=%s]", name)
+		return nil, fmt.Errorf("Couldn't validate tv show [dir=%s]", name)
 	}
 
 	mutex.Lock()
@@ -86,60 +89,53 @@ func (s *tvShowService) UpdateTVShow(name string, mutex *sync.Mutex, wg *sync.Wa
 	if existingShow == nil {
 		if err := s.Save(tvShow); err != nil { // NOTE: here tv show is validated twice, need to be changed
 			log.Debugf("Couldn't save new tv show[%s]; err: %v", tvShow.Name, err)
-			return err
+			return nil, err
 		}
 		log.Infof("Successfully saved new tv show[%s]", tvShow.Name)
 	} else {
 		tvShow.ID = existingShow.ID
 		if err := s.tvShowRepo.Update(tvShow); err != nil {
 			log.Debugf("Couldn't update tv show[%s]; err: %v", tvShow.Name, err)
-			return err
+			return nil, err
 		}
 		log.Infof("Successfully updated tv show[%s]", tvShow.Name)
 	}
-	// unlock mutex and finish wait group
+	// unlock mutex
 	mutex.Unlock()
-	wg.Done()
-	return nil
+	return tvShow, nil
 }
 
-// UpdateTVShows reads directory names, removes special char like "_,/"
-// and calls tvmaze api to get data
-func (s *tvShowService) UpdateTVShows() error {
-	// get tv show names
+// UpdateAllTVShows reads directory names, removes special char like "_,/"
+// and calls TVmaze api to get data
+func (s *tvShowService) UpdateAllTVShows() (map[string]string, map[string]string) {
 	tvShowDirs := getDirectories()
-	names := []string{}
-	for _, dir := range tvShowDirs {
-		names = append(names, createName(dir))
-	}
 
 	// get data from TVmaze api
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
-	wg.Add(len(names))
+	wg.Add(len(tvShowDirs))
 
-	finished := make(chan bool, 1)
-	errs := make(chan error)
-	for _, n := range names {
-		go func(n string) {
-			if err := s.UpdateTVShow(n, &mutex, &wg); err != nil {
-				errs <- err
-			}
-		}(n)
+	updatedShows := make(map[string]string) // this var contains names of updated tv shows (for http handler)
+  errorsMap := make(map[string]string)
+
+	for i, n := range tvShowDirs {
+		go func(i int, n string) {
+			defer wg.Done()
+			tvShow, err := s.UpdateTVShow(n, &mutex)
+			if err != nil {
+        mutex.Lock()
+        errorsMap[n] = err.Error()
+        mutex.Unlock()
+				return 
+      }
+			mutex.Lock() // lock mutex to avoid race condition
+			updatedShows[tvShow.DirPath] = tvShow.Name
+			mutex.Unlock()
+		}(i, n)
 	}
+	wg.Wait()
 
-	go func() {
-		wg.Wait()
-		close(finished)
-	}()
-
-	select {
-	case <-finished:
-	case err := <-errs:
-		close(errs)
-		return err
-	}
-	return nil
+	return updatedShows, errorsMap
 }
 
 // GetTVShowByName returns tv show if exists
@@ -196,7 +192,10 @@ func getDirectories() []string {
 
 		for _, f := range files {
 			if f.IsDir() {
-				tvShowDirs = append(tvShowDirs, f.Name())
+				if !strings.HasSuffix(dir, "/") {
+					dir += "/"
+				}
+				tvShowDirs = append(tvShowDirs, dir+f.Name())
 			}
 		}
 	}

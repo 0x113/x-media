@@ -54,6 +54,7 @@ func (suite *TVShowServiceTestSuite) TestSave() {
 				Rating:    8.5,
 				PosterURL: "https://static.tvmaze.com/uploads/images/original_untouched/85/213184.jpg",
 				Summary:   "One of the best tv shows ever",
+				DirPath:   "testdata/three_shows/The_Office",
 			},
 			wantErr: false,
 		},
@@ -68,6 +69,7 @@ func (suite *TVShowServiceTestSuite) TestSave() {
 				Rating:    8.1,
 				PosterURL: "https://static.tvmaze.com/uploads/images/original_untouched/236/590384.jpg",
 				Summary:   "Meet the most beloved sitcom horse of the '90s, 20 years later.",
+				DirPath:   "testdata/three_shows/BoJack Horseman",
 			},
 			wantErr: true,
 		},
@@ -90,7 +92,7 @@ func (suite *TVShowServiceTestSuite) TestSave() {
 	}
 }
 
-func (suite *TVShowServiceTestSuite) TestUpdateTVShows() {
+func (suite *TVShowServiceTestSuite) TestUpdateAllTVShows() {
 	// set up config
 	suite.client = &mocks.MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
@@ -163,8 +165,9 @@ func (suite *TVShowServiceTestSuite) TestUpdateTVShows() {
 		TVShowDirectories: []string{"testdata/three_shows/"},
 	}
 
-	err := suite.tvShowService.UpdateTVShows()
-	suite.Nil(err)
+	_, errMap := suite.tvShowService.UpdateAllTVShows()
+  expectedErrMap := map[string]string{}
+	suite.Equal(expectedErrMap, errMap)
 }
 
 func (suite *TVShowServiceTestSuite) TestGetTVShowByName() {
@@ -188,6 +191,7 @@ func (suite *TVShowServiceTestSuite) TestGetTVShowByName() {
 				Rating:    8.1,
 				PosterURL: "https://static.tvmaze.com/uploads/images/original_untouched/236/590384.jpg",
 				Summary:   "Meet the most beloved sitcom horse of the '90s, 20 years later.",
+				DirPath:   "testdata/three_shows/BoJack Horseman",
 			},
 			wantErr: false,
 		},
@@ -233,6 +237,7 @@ func (suite *TVShowServiceTestSuite) TestGetAllTVShows() {
 					Rating:    8.1,
 					PosterURL: "https://static.tvmaze.com/uploads/images/original_untouched/236/590384.jpg",
 					Summary:   "Meet the most beloved sitcom horse of the '90s, 20 years later.",
+					DirPath:   "testdata/three_shows/BoJack Horseman",
 				},
 			},
 			wantErr: false,
