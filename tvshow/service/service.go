@@ -116,18 +116,18 @@ func (s *tvShowService) UpdateAllTVShows() (map[string]string, map[string]string
 	wg.Add(len(tvShowDirs))
 
 	updatedShows := make(map[string]string) // this var contains names of updated tv shows (for http handler)
-  errorsMap := make(map[string]string)
+	errorsMap := make(map[string]string)
 
 	for i, n := range tvShowDirs {
 		go func(i int, n string) {
 			defer wg.Done()
 			tvShow, err := s.UpdateTVShow(n, &mutex)
 			if err != nil {
-        mutex.Lock()
-        errorsMap[n] = err.Error()
-        mutex.Unlock()
-				return 
-      }
+				mutex.Lock()
+				errorsMap[n] = err.Error()
+				mutex.Unlock()
+				return
+			}
 			mutex.Lock() // lock mutex to avoid race condition
 			updatedShows[tvShow.DirPath] = tvShow.Name
 			mutex.Unlock()
