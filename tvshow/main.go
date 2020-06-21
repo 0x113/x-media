@@ -31,6 +31,7 @@ func (srv *Server) initServer() error {
 
 	// set up router
 	srv.router = echo.New()
+	srv.router.HideBanner = true
 	return nil
 }
 
