@@ -4,11 +4,11 @@
 	"log_max_size": 10,
 	"log_max_backups": 5,
 	"log_max_age": 30,
-	"db_addr": "localhost:27017",
+	"db_addr": "xmedia-tvshow-db",
 	"db_name": "xmedia_tvshow",
 	"db_username": "",
 	"db_password": "",
 	"tv_show_directories": [
-		"/home/y0x/Videos"
+		"/data/tvshows" 
 	]
 }

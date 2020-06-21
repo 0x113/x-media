@@ -1,34 +1,50 @@
 version: '3.1'
 
 services:
-  x-media-service:
-    build: .
-    ports:
-      - 8000:8000
+  xmedia-tvshows-svc:
+    build: ./tvshow
     links:
-      - db
-    environment:
-      - DB_PORT=3306
-      - DB_HOST=db
-      - DB_NAME=xmedia
-      - DB_PASS=${MYSQL_ROOT_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-      - VIDEO_DIR=/data/movies
-      - MOVIES_SUB_DIR=/data/sub
-    volumes:
-      - ${VIDEO_DIR}:/data/movies
-      - ${MOVIES_SUB_DIR}:/data/sub
-
-  db:
-    image: mysql:8.0
+      - xmedia-tvshow-db
     ports:
-      - 6603:3306
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - 8001:8001
     volumes:
-      - xmedia-db:/var/lib/mysql
-      - ./database.sql:/docker-entrypoint-initdb.d/init.sql
-    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+      - /home/y0x/Videos:/data/tvshows
+  
+  xmedia-tvshow-db:
+    image: mongo:4.2.3
+    ports: 
+      - 27018:27017
 
-volumes:
-  xmedia-db:
+# old version, need to be removed
+#services:
+  #  x-media-service:
+  #    build: .
+  #    ports:
+  #      - 8000:8000
+  #    links:
+  #      - db
+  #    environment:
+  #      - DB_PORT=3306
+  #      - DB_HOST=db
+  #      - DB_NAME=xmedia
+  #      - DB_PASS=${MYSQL_ROOT_PASSWORD}
+  #      - JWT_SECRET=${JWT_SECRET}
+  #      - VIDEO_DIR=/data/movies
+  #      - MOVIES_SUB_DIR=/data/sub
+  #    volumes:
+  #      - ${VIDEO_DIR}:/data/movies
+  #      - ${MOVIES_SUB_DIR}:/data/sub
+  #
+  #  db:
+  #    image: mysql:8.0
+  #    ports:
+  #      - 6603:3306
+  #    environment:
+  #      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+  #    volumes:
+  #      - xmedia-db:/var/lib/mysql
+  #      - ./database.sql:/docker-entrypoint-initdb.d/init.sql
+  #    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+  #
+  #volumes:
+  #  xmedia-db:
