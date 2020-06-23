@@ -47,5 +47,5 @@ func main() {
 	tvShowService := service.NewTVShowService(client, tvShowRepository)
 	handler.NewTVShowHandler(srv.router, tvShowService)
 
-	srv.router.Start(common.Config.Port)
+	srv.router.Start(":" + common.Config.Port)
 }

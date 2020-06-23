@@ -46,7 +46,7 @@ func main() {
 	userService := service.NewUserService(userRepository)
 	handler.NewUserHandler(srv.router, userService)
 
-	srv.router.Start(common.Config.Port)
+	srv.router.Start(":" + common.Config.Port)
 	// close the database connection
 	defer databases.Database.DB.Close()
 
