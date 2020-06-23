@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"github.com/0x113/x-media/user/data"
 	"github.com/0x113/x-media/user/models"
 
@@ -39,6 +41,8 @@ func (s *userService) CreateUser(u *models.User) error {
 		return err
 	}
 	u.Password = string(hash)
+	u.CreatedAt = time.Now()
+	u.UpdatedAt = time.Now()
 
 	if err := s.repo.Create(u); err != nil {
 		log.Errorf("Couldn't create user: %v", err)
