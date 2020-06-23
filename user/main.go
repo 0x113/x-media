@@ -47,5 +47,7 @@ func main() {
 	handler.NewUserHandler(srv.router, userService)
 
 	srv.router.Start(common.Config.Port)
+	// close the database connection
+	defer databases.Database.DB.Close()
 
 }
