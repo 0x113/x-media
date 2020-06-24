@@ -1,7 +1,9 @@
 version: '3.1'
 
 services:
+  # TV SHOW SERVICE
   xmedia-tvshows-svc:
+    container_name: xmedia-tvshows-svc
     build: ./tvshow
     links:
       - xmedia-tvshow-db
@@ -9,42 +11,31 @@ services:
       - 8001:8001
     volumes:
       - /home/y0x/Videos:/data/tvshows
-  
-  xmedia-tvshow-db:
-    image: mongo:4.2.3
-    ports: 
-      - 27018:27017
 
-# old version, need to be removed
-#services:
-  #  x-media-service:
-  #    build: .
-  #    ports:
-  #      - 8000:8000
-  #    links:
-  #      - db
-  #    environment:
-  #      - DB_PORT=3306
-  #      - DB_HOST=db
-  #      - DB_NAME=xmedia
-  #      - DB_PASS=${MYSQL_ROOT_PASSWORD}
-  #      - JWT_SECRET=${JWT_SECRET}
-  #      - VIDEO_DIR=/data/movies
-  #      - MOVIES_SUB_DIR=/data/sub
-  #    volumes:
-  #      - ${VIDEO_DIR}:/data/movies
-  #      - ${MOVIES_SUB_DIR}:/data/sub
-  #
-  #  db:
-  #    image: mysql:8.0
-  #    ports:
-  #      - 6603:3306
-  #    environment:
-  #      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-  #    volumes:
-  #      - xmedia-db:/var/lib/mysql
-  #      - ./database.sql:/docker-entrypoint-initdb.d/init.sql
-  #    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
-  #
-  #volumes:
-  #  xmedia-db:
+  # TV SHOW DATABASE
+  xmedia-tvshow-db:
+    container_name: xmedia-tvshows-db
+    image: mongo:4.2.3
+    ports:
+      - 27017:27017
+
+  # USER SERVICE
+  xmedia-user-svc:
+    container_name: xmedia-user-svc
+    build: ./user
+    links:
+      - xmedia-user-db
+    ports:
+      - 8002:8002
+
+  # USER DATABASE
+  xmedia-user-db:
+    container_name: xmedia-user-db
+    image: mysql:8.0.20
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+        # - MYSQL_DATABASE=xmedia_users
+    volumes:
+      - ./user/init.sql:/docker-entrypoint-initdb.d/init.sql
