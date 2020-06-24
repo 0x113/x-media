@@ -18,7 +18,8 @@ RUN go build -o user-svc .
 WORKDIR /app
 
 RUN cp -r /build/config .
+RUN cp /build/init.sql .
 RUN cp /build/user-svc .
 
-EXPOSE 8001
+EXPOSE 8002
 ENTRYPOINT ["/app/user-svc"]
