@@ -3,6 +3,8 @@ package data
 import (
 	"github.com/0x113/x-media/user/databases"
 	"github.com/0x113/x-media/user/models"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // userRepository manages the use CRUD
