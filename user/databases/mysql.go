@@ -18,17 +18,19 @@ type MysqlDB struct {
 
 // Init initializes MySQL database
 func (database *MysqlDB) Init() error {
-	log.Infoln("Connecting to the MySQL datbase...")
+	log.Infoln("Connecting to the MySQL database...")
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", common.Config.DbUsername, common.Config.DbPassword, common.Config.DbAddr, common.Config.DbName)
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return err
 	}
 
-	// check connection
-	if err := db.Ping(); err != nil {
-		return err
-	}
+	// TODO: find a way to use Ping method on docker
+	/*
+		if err := db.Ping(); err != nil {
+			return err
+		}
+	*/
 
 	// set db
 	database.DB = db
