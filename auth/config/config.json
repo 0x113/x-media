@@ -1,0 +1,9 @@
+{
+	"port": "8003",
+	"log_filename": "logs/server.log",
+	"log_max_size": 10,
+	"log_max_backups": 5,
+	"log_max_age": 30,
+  "access_secret": "secret",
+  "refresh_secret": "refresh_secret"
+}
