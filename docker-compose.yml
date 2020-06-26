@@ -36,6 +36,6 @@ services:
       - 3306:3306
     environment:
       - MYSQL_ROOT_PASSWORD=root
-        # - MYSQL_DATABASE=xmedia_users
+      - MYSQL_DATABASE=xmedia_users
     volumes:
       - ./user/init.sql:/docker-entrypoint-initdb.d/init.sql
