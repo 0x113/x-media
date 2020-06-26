@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/0x113/x-media/auth/common"
@@ -12,6 +13,7 @@ import (
 // AuthService decribes authentication service
 type AuthService interface {
 	GenerateJWT(username string, isAdmin bool) (*models.TokenDetails, error)
+	ExtractTokenMetadata(tokenString string) (*models.AccessDetails, error)
 }
 
 type authService struct{}
@@ -51,4 +53,23 @@ func (s *authService) GenerateJWT(username string, isAdmin bool) (*models.TokenD
 	td.RefreshToken, err = rt.SignedString([]byte(common.Config.RefreshSecret))
 
 	return td, err
+}
+
+// ExtractTokenMetadata extracts data from provided JSON Web Token
+func (s *authService) ExtractTokenMetadata(tokenString string) (*models.AccessDetails, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &models.TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(common.Config.AccessSecret), nil
+	})
+
+	if claims, ok := token.Claims.(*models.TokenClaims); ok && token.Valid {
+		return &models.AccessDetails{
+			Username: claims.Username,
+			IsAdmin:  claims.IsAdmin,
+		}, nil
+	}
+
+	return nil, err
 }
