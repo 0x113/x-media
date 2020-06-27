@@ -10,13 +10,12 @@ type TokenDetails struct {
 
 // TokenClaims defines custom token claims
 type TokenClaims struct {
-	Username string
-	IsAdmin  bool
+	Details *AccessDetails
 	jwt.StandardClaims
 }
 
 // AccessDetails defines access details e.g. isAdmin, username
 type AccessDetails struct {
-	Username string `json:"username"`
-	IsAdmin  bool   `json:"is_admin"`
+	Username string `json:"username" validate:"required"`
+	IsAdmin  *bool  `json:"is_admin" validate:"required"`
 }
