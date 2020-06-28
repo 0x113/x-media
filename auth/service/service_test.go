@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/0x113/x-media/auth/common"
+	"github.com/0x113/x-media/auth/models"
 	"github.com/0x113/x-media/auth/service"
 
 	"github.com/stretchr/testify/suite"
@@ -32,9 +33,40 @@ func (suite *AuthServiceTestSuite) TestGenerateJWT() {
 		RefreshSecret: "refresh_secret",
 	}
 
-	td, err := suite.authService.GenerateJWT("test", false)
-	suite.Nil(err)
-	suite.NotNil(td)
+	testCases := []struct {
+		name    string
+		details *models.AccessDetails
+		wantErr bool
+	}{
+		{
+			name: "Success",
+			details: &models.AccessDetails{
+				Username: "JohnDoe",
+				IsAdmin:  new(bool),
+			},
+			wantErr: false,
+		},
+		{
+			name: "Validation error",
+			details: &models.AccessDetails{
+				Username: "JohnDoe",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.Run(tt.name, func() {
+			td, err := suite.authService.GenerateJWT(tt.details)
+			if tt.wantErr {
+				suite.NotNil(err)
+				suite.Nil(td)
+			} else {
+				suite.Nil(err)
+				suite.NotNil(td)
+			}
+		})
+	}
 }
 
 func (suite *AuthServiceTestSuite) TestExtractTokenMetadata() {
@@ -46,34 +78,39 @@ func (suite *AuthServiceTestSuite) TestExtractTokenMetadata() {
 
 	testCases := []struct {
 		name          string
-		username      string
+		details       *models.AccessDetails
 		token         string
 		generateToken bool
-		isAdmin       bool
 		wantErr       bool
 	}{
 		{
-			name:          "Success",
-			username:      "JohnDoe",
+			name: "Success",
+			details: &models.AccessDetails{
+				Username: "JohnDoe",
+				IsAdmin:  new(bool),
+			},
 			token:         "",
 			generateToken: true,
-			isAdmin:       false,
 			wantErr:       false,
 		},
 		{
-			name:          "Admin user - success",
-			username:      "JohnDoe",
+			name: "Admin user - success",
+			details: &models.AccessDetails{
+				Username: "JohnDoe",
+				IsAdmin:  &[]bool{true}[0], // should *bool to true; quite messy but need to be pointer for validatiote
+			},
 			token:         "",
 			generateToken: true,
-			isAdmin:       true,
 			wantErr:       false,
 		},
 		{
-			name:          "Wrong signing method",
-			username:      "",
+			name: "Wrong signing method",
+			details: &models.AccessDetails{
+				Username: "JohnDoe",
+				IsAdmin:  new(bool),
+			},
 			token:         "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.tyh-VfuzIxCyGYDlkBA7DfyjrqmSHu6pQ2hoZuFqUSLPNY2N0mpHb3nk5K17HWP_3cYHBw7AhHale5wky6-sVA",
 			generateToken: false,
-			isAdmin:       false,
 			wantErr:       true,
 		},
 	}
@@ -82,9 +119,9 @@ func (suite *AuthServiceTestSuite) TestExtractTokenMetadata() {
 		suite.Run(tt.name, func() {
 			// generate token
 			if tt.generateToken {
-				token, err := suite.authService.GenerateJWT(tt.username, tt.isAdmin)
-				tt.token = token.AccessToken
+				token, err := suite.authService.GenerateJWT(tt.details)
 				suite.Nil(err)
+				tt.token = token.AccessToken
 			}
 			// extract data from token
 			accessDetails, err := suite.authService.ExtractTokenMetadata(tt.token)
@@ -93,8 +130,8 @@ func (suite *AuthServiceTestSuite) TestExtractTokenMetadata() {
 				suite.Nil(accessDetails)
 			} else {
 				suite.Nil(err)
-				suite.Equal(tt.username, accessDetails.Username)
-				suite.Equal(tt.isAdmin, accessDetails.IsAdmin)
+				suite.Equal(tt.details.Username, accessDetails.Username)
+				suite.Equal(tt.details.IsAdmin, accessDetails.IsAdmin)
 			}
 		})
 	}

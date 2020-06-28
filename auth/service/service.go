@@ -8,11 +8,12 @@ import (
 	"github.com/0x113/x-media/auth/models"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-playground/validator"
 )
 
 // AuthService decribes authentication service
 type AuthService interface {
-	GenerateJWT(username string, isAdmin bool) (*models.TokenDetails, error)
+	GenerateJWT(accessDetails *models.AccessDetails) (*models.TokenDetails, error)
 	ExtractTokenMetadata(tokenString string) (*models.AccessDetails, error)
 }
 
@@ -24,13 +25,18 @@ func NewAuthService() AuthService {
 }
 
 // GenerateJWT generates new token from provided data
-func (s *authService) GenerateJWT(username string, isAdmin bool) (*models.TokenDetails, error) {
+func (s *authService) GenerateJWT(accessDetails *models.AccessDetails) (*models.TokenDetails, error) {
+	// validation
+	validate := validator.New()
+	if err := validate.Struct(accessDetails); err != nil {
+		return nil, err
+	}
+
 	td := &models.TokenDetails{}
 	var err error
 	// access token
 	atClaims := &models.TokenClaims{
-		username,
-		isAdmin,
+		accessDetails,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(15 * time.Minute).Unix(),
 		},
@@ -43,8 +49,7 @@ func (s *authService) GenerateJWT(username string, isAdmin bool) (*models.TokenD
 
 	// refresh token
 	rtClaims := &models.TokenClaims{
-		username,
-		isAdmin,
+		accessDetails,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(7 * 24 * time.Hour).Unix(),
 		},
@@ -64,10 +69,15 @@ func (s *authService) ExtractTokenMetadata(tokenString string) (*models.AccessDe
 		return []byte(common.Config.AccessSecret), nil
 	})
 
+	// make sure that token is not nil
+	if token == nil {
+		return nil, err
+
+	}
 	if claims, ok := token.Claims.(*models.TokenClaims); ok && token.Valid {
 		return &models.AccessDetails{
-			Username: claims.Username,
-			IsAdmin:  claims.IsAdmin,
+			Username: claims.Details.Username,
+			IsAdmin:  claims.Details.IsAdmin,
 		}, nil
 	}
 
