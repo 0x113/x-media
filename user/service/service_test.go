@@ -83,3 +83,43 @@ func (suite *UserServiceTestSuite) TestCreateUser() {
 		})
 	}
 }
+
+func (suite *UserServiceTestSuite) TestGetUser() {
+	testCases := []struct {
+		name         string
+		username     string
+		expectedUser *models.User
+		wantErr      bool
+	}{
+		{
+			name:     "Success",
+			username: "JohnDoe", // this user exists in a mocked database
+			expectedUser: &models.User{
+				ID:       420,
+				Username: "JohnDoe",
+				Password: "$2a$11$zBkkaUb7woE6Y4oGeqrzYeNlmZ.e/3IbNCfxEYtASk.YHJFYGpfzK",
+				IsAdmin:  false,
+			},
+			wantErr: false,
+		},
+		{
+			name:         "Non-existent user",
+			username:     "NotJohnDoe",
+			expectedUser: nil,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.Run(tt.name, func() {
+			user, err := suite.userService.GetUser(tt.username)
+			if tt.wantErr {
+				suite.NotNil(err)
+			} else {
+				suite.Nil(err)
+			}
+
+			suite.Equal(tt.expectedUser, user)
+		})
+	}
+}

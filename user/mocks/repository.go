@@ -17,7 +17,7 @@ func NewMockUserRepository() *MockUserRepository {
 	users["JohnDoe"] = &models.User{
 		ID:       420,
 		Username: "JohnDoe",
-		Password: "ThisShouldSuperStrongAndSecret",
+		Password: "$2a$11$zBkkaUb7woE6Y4oGeqrzYeNlmZ.e/3IbNCfxEYtASk.YHJFYGpfzK",
 		IsAdmin:  false,
 	}
 	return &MockUserRepository{users}
@@ -31,4 +31,13 @@ func (r *MockUserRepository) Create(u *models.User) error {
 
 	r.users[u.Username] = u
 	return nil
+}
+
+// Get user by username from memory
+func (r *MockUserRepository) Get(username string) (*models.User, error) {
+	if user, ok := r.users[username]; ok {
+		return user, nil
+	}
+
+	return nil, fmt.Errorf("User with username: %s; doesn't exist", username)
 }
