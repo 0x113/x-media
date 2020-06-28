@@ -69,6 +69,11 @@ func (s *authService) ExtractTokenMetadata(tokenString string) (*models.AccessDe
 		return []byte(common.Config.AccessSecret), nil
 	})
 
+	// make sure that token is not nil
+	if token == nil {
+		return nil, err
+
+	}
 	if claims, ok := token.Claims.(*models.TokenClaims); ok && token.Valid {
 		return &models.AccessDetails{
 			Username: claims.Details.Username,
