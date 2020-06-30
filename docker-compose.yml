@@ -7,6 +7,8 @@ services:
     build: ./tvshow
     links:
       - xmedia-tvshow-db
+    labels:
+      - traefik.http.routers.tvshowsvc.rule=Host("tvshowsvc")
     ports:
       - 8001:8001
     volumes:
@@ -16,6 +18,8 @@ services:
   xmedia-tvshow-db:
     container_name: xmedia-tvshows-db
     image: mongo:4.2.3
+    labels:
+      - traefik.enable=false
     ports:
       - 27017:27017
 
@@ -25,6 +29,8 @@ services:
     build: ./user
     links:
       - xmedia-user-db
+    labels:
+      - traefik.http.routers.usersvc.rule=Host("usersvc")
     ports:
       - 8002:8002
 
@@ -32,6 +38,8 @@ services:
   xmedia-user-db:
     container_name: xmedia-user-db
     image: mysql:8.0.20
+    labels:
+      - traefik.enable=false
     ports:
       - 3306:3306
     environment:
@@ -39,3 +47,19 @@ services:
       - MYSQL_DATABASE=xmedia_users
     volumes:
       - ./user/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # TRAEFIK
+  reverse-proxy:
+    container_name: traefik
+    # The official v2 Traefik docker image
+    image: traefik:v2.2
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --api.insecure=true --providers.docker
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
