@@ -79,3 +79,49 @@ func (suite *UserHandlerTestSuite) TestCreateUser() {
 		})
 	}
 }
+
+func (suite *UserHandlerTestSuite) TestValidateUser() {
+	e := echo.New()
+	h := &userHandler{suite.userService}
+	testCases := []struct {
+		name               string
+		json               string
+		expectedStatusCode int
+		wantErr            bool
+	}{
+		{
+			name:               "Success",
+			json:               `{"username": "JohnDoe", "password": "test1231"}`,
+			expectedStatusCode: 200,
+			wantErr:            false,
+		},
+		{
+			name:               "Bad request",
+			json:               `{"username: "test123"}`,
+			expectedStatusCode: 400,
+			wantErr:            true,
+		},
+		{
+			name:               "Wrong password",
+			json:               `{"username": "JohnDoe", "password": "strong"}`,
+			expectedStatusCode: 500,
+			wantErr:            true,
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.Run(tt.name, func() {
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/user/validate", strings.NewReader(tt.json))
+			req.Header.Set("Content-Type", "application/json")
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+			err := h.ValidateUser(c)
+			if tt.wantErr {
+				suite.NotNil(err)
+			} else {
+				suite.Nil(err)
+			}
+			suite.Equal(tt.expectedStatusCode, rec.Code)
+		})
+	}
+}

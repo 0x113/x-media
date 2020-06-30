@@ -123,3 +123,55 @@ func (suite *UserServiceTestSuite) TestGetUser() {
 		})
 	}
 }
+
+func (suite *UserServiceTestSuite) TestValidateUser() {
+	testCases := []struct {
+		name           string
+		creds          *models.Credentials
+		expectedClaims *models.TokenClaims
+		wantErr        bool
+	}{
+		{
+			name: "Success",
+			creds: &models.Credentials{
+				Username: "JohnDoe",
+				Password: "test1231",
+			},
+			expectedClaims: &models.TokenClaims{
+				Username: "JohnDoe",
+				IsAdmin:  false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Wrong password",
+			creds: &models.Credentials{
+				Username: "JohnDoe",
+				Password: "ThatNotJohnDoesPassword",
+			},
+			expectedClaims: nil,
+			wantErr:        true,
+		},
+		{
+			name: "Non-existent user",
+			creds: &models.Credentials{
+				Username: "JanKowalski",
+				Password: "SuperCoolPassword",
+			},
+			expectedClaims: nil,
+			wantErr:        true,
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.Run(tt.name, func() {
+			claims, err := suite.userService.ValidateUser(tt.creds)
+			if tt.wantErr {
+				suite.NotNil(err)
+			} else {
+				suite.Nil(err)
+			}
+			suite.Equal(tt.expectedClaims, claims)
+		})
+	}
+}
