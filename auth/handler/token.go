@@ -22,8 +22,8 @@ func NewAuthHandler(router *echo.Echo, authService service.AuthService) {
 
 // GenerateToken calls the service layer and generates new JSON Web Token
 func (h *authHandler) GenerateToken(c echo.Context) error {
-	claims := new(models.AccessDetails)
-	if err := c.Bind(claims); err != nil {
+	creds := new(models.Credentials)
+	if err := c.Bind(creds); err != nil {
 		errMsg := &models.Error{
 			Code:    http.StatusUnprocessableEntity,
 			Message: "Provided data is invalid",
@@ -32,17 +32,17 @@ func (h *authHandler) GenerateToken(c echo.Context) error {
 		return err
 	}
 
-	tokenDetails, err := h.authService.GenerateJWT(claims)
+	token, err := h.authService.Login(creds)
 	if err != nil {
 		errMsg := &models.Error{
 			Code:    http.StatusInternalServerError,
-			Message: "Couldn't generate token for user",
+			Message: "Couldn't generate token for the user",
 		}
 		c.JSON(errMsg.Code, errMsg)
 		return err
 	}
 
-	return c.JSON(http.StatusOK, tokenDetails)
+	return c.JSON(http.StatusOK, token)
 }
 
 // GetTokenMetadata calls the service layer to validate provided token and

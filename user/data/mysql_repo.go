@@ -30,3 +30,14 @@ func (r *userRepository) Create(u *models.User) error {
 
 	return nil
 }
+
+// Get user by username from the database
+func (r *userRepository) Get(username string) (*models.User, error) {
+	query := "SELECT * FROM user WHERE username = ?"
+
+	var user models.User
+	if err := databases.Database.DB.QueryRow(query, username).Scan(&user.ID, &user.Username, &user.Password, &user.IsAdmin, &user.CreatedAt, &user.UpdatedAt); err != nil {
+		return nil, err
+	}
+	return &user, nil
+}

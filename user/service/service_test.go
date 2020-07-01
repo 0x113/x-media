@@ -83,3 +83,95 @@ func (suite *UserServiceTestSuite) TestCreateUser() {
 		})
 	}
 }
+
+func (suite *UserServiceTestSuite) TestGetUser() {
+	testCases := []struct {
+		name         string
+		username     string
+		expectedUser *models.User
+		wantErr      bool
+	}{
+		{
+			name:     "Success",
+			username: "JohnDoe", // this user exists in a mocked database
+			expectedUser: &models.User{
+				ID:       420,
+				Username: "JohnDoe",
+				Password: "$2a$11$zBkkaUb7woE6Y4oGeqrzYeNlmZ.e/3IbNCfxEYtASk.YHJFYGpfzK",
+				IsAdmin:  false,
+			},
+			wantErr: false,
+		},
+		{
+			name:         "Non-existent user",
+			username:     "NotJohnDoe",
+			expectedUser: nil,
+			wantErr:      true,
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.Run(tt.name, func() {
+			user, err := suite.userService.GetUser(tt.username)
+			if tt.wantErr {
+				suite.NotNil(err)
+			} else {
+				suite.Nil(err)
+			}
+
+			suite.Equal(tt.expectedUser, user)
+		})
+	}
+}
+
+func (suite *UserServiceTestSuite) TestValidateUser() {
+	testCases := []struct {
+		name           string
+		creds          *models.Credentials
+		expectedClaims *models.TokenClaims
+		wantErr        bool
+	}{
+		{
+			name: "Success",
+			creds: &models.Credentials{
+				Username: "JohnDoe",
+				Password: "test1231",
+			},
+			expectedClaims: &models.TokenClaims{
+				Username: "JohnDoe",
+				IsAdmin:  false,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Wrong password",
+			creds: &models.Credentials{
+				Username: "JohnDoe",
+				Password: "ThatNotJohnDoesPassword",
+			},
+			expectedClaims: nil,
+			wantErr:        true,
+		},
+		{
+			name: "Non-existent user",
+			creds: &models.Credentials{
+				Username: "JanKowalski",
+				Password: "SuperCoolPassword",
+			},
+			expectedClaims: nil,
+			wantErr:        true,
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.Run(tt.name, func() {
+			claims, err := suite.userService.ValidateUser(tt.creds)
+			if tt.wantErr {
+				suite.NotNil(err)
+			} else {
+				suite.Nil(err)
+			}
+			suite.Equal(tt.expectedClaims, claims)
+		})
+	}
+}

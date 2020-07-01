@@ -1,15 +1,19 @@
 package handler
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/0x113/x-media/auth/common"
+	"github.com/0x113/x-media/auth/mocks"
 	"github.com/0x113/x-media/auth/models"
 	"github.com/0x113/x-media/auth/service"
+	"github.com/sirupsen/logrus"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/suite"
@@ -18,6 +22,7 @@ import (
 // AuthHandlerTestSuite defines the test suite
 type AuthHandlerTestSuite struct {
 	suite.Suite
+	httpClient  *mocks.MockClient
 	authService service.AuthService
 }
 
@@ -28,7 +33,7 @@ func (suite *AuthHandlerTestSuite) SetupTest() {
 		AccessSecret:  "secret",
 		RefreshSecret: "refresh_secret",
 	}
-	suite.authService = service.NewAuthService()
+	logrus.SetOutput(ioutil.Discard)
 }
 
 // TestAuthHandlerTestSuite runs the test suite
@@ -38,34 +43,56 @@ func TestAuthHandlerTestSuite(t *testing.T) {
 
 func (suite *AuthHandlerTestSuite) TestGenerateToken() {
 	e := echo.New()
-	h := authHandler{suite.authService}
+
 	testCases := []struct {
 		name               string
 		json               string
 		expectedStatusCode int
 		wantErr            bool
+		DoFunc             func(req *http.Request) (*http.Response, error)
 	}{
 		{
 			name:               "Success",
-			json:               `{"username": "JohnDoe", "is_admin": false}`,
+			json:               `{"username": "JohnDoe", "password": "test1231"}`,
 			expectedStatusCode: 200,
 			wantErr:            false,
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				jsonStr := `{"username": "JohnDoe", "is_admin": false}`
+				return &http.Response{
+					StatusCode: 200,
+					Body:       ioutil.NopCloser(bytes.NewReader([]byte(jsonStr))),
+				}, nil
+			},
 		},
 		{
 			name:               "Invalid json",
 			json:               `{"username": "JohnDoe", "is_cool": "no"}`,
 			expectedStatusCode: 500,
 			wantErr:            true,
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				jsonStr := `{"code": 500, "message": "Invalid user credentials"}`
+				return &http.Response{
+					StatusCode: 500,
+					Body:       ioutil.NopCloser(bytes.NewReader([]byte(jsonStr))),
+				}, nil
+			},
 		},
 		{
 			name:               "Binding error",
 			json:               ``,
 			expectedStatusCode: 422,
 			wantErr:            true,
+			DoFunc:             nil,
 		},
 	}
 
 	for _, tt := range testCases {
+		// set up httpClient, auth service and handler
+		suite.httpClient = &mocks.MockClient{tt.DoFunc}
+		suite.authService = service.NewAuthService(suite.httpClient)
+		h := authHandler{suite.authService}
+
+		// run the subtest
 		suite.Run(tt.name, func() {
 			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/token/generate", strings.NewReader(tt.json))
 			req.Header.Set("Content-Type", "application/json")
@@ -84,6 +111,15 @@ func (suite *AuthHandlerTestSuite) TestGenerateToken() {
 }
 
 func (suite *AuthHandlerTestSuite) TestGetTokenMetadata() {
+	suite.httpClient = &mocks.MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			return &http.Response{
+				Body: ioutil.NopCloser(nil),
+			}, nil
+		},
+	}
+	suite.authService = service.NewAuthService(suite.httpClient)
+
 	e := echo.New()
 	h := authHandler{suite.authService}
 	testCases := []struct {
