@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/0x113/x-media/auth/common"
 	"github.com/0x113/x-media/auth/handler"
 	"github.com/0x113/x-media/auth/service"
@@ -32,7 +34,8 @@ func main() {
 		log.Fatalf("Couldn't initialize server: %v", err)
 	}
 
-	authService := service.NewAuthService()
+	httpClient := &http.Client{}
+	authService := service.NewAuthService(httpClient)
 	handler.NewAuthHandler(srv.router, authService)
 
 	srv.router.Start(":" + common.Config.Port)
