@@ -62,7 +62,7 @@ func (h *userHandler) ValidateUser(c echo.Context) error {
 	if err != nil {
 		errMsg := models.Error{
 			Code:    http.StatusInternalServerError,
-			Message: "Invalid user",
+			Message: "Invalid user credentials",
 		}
 		c.JSON(errMsg.Code, errMsg)
 		return err

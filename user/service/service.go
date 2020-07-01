@@ -59,7 +59,7 @@ func (s *userService) CreateUser(u *models.User) error {
 func (s *userService) ValidateUser(creds *models.Credentials) (*models.TokenClaims, error) {
 	user, err := s.GetUser(creds.Username)
 	if err != nil {
-		return nil, err // no need for logging, 'cause it's in GetUser method
+		return nil, err // no need to log, 'cause GetUser method does it
 	}
 
 	// compare password with hash
