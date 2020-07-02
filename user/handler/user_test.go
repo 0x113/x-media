@@ -51,8 +51,8 @@ func (suite *UserHandlerTestSuite) TestCreateUser() {
 		},
 		{
 			name:               "Decoding error",
-			json:               `{"username: "test123"}`,
-			expectedStatusCode: 422,
+			json:               ``,
+			expectedStatusCode: 400,
 			wantErr:            true,
 		},
 		{
