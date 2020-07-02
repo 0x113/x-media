@@ -143,7 +143,7 @@ func (s *tvShowService) GetTVShowByName(name string) (*models.TVShow, error) {
 	tvShow, err := s.tvShowRepo.GetByName(name)
 	if err != nil {
 		log.Debugf("Unable to get tv show from the database; err: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("There is no %s in the tv show database", name)
 	}
 	log.Infof("Successfully found tv show: %s", name)
 	return tvShow, nil
@@ -154,7 +154,7 @@ func (s *tvShowService) GetAllTVShows() ([]*models.TVShow, error) {
 	tvShows, err := s.tvShowRepo.GetAll()
 	if err != nil {
 		log.Debugf("Couldn't get all tv shows from the database; err: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("Couldn't get all tv shows from the database")
 	}
 
 	log.Infof("Successfully found all the shows")
