@@ -26,6 +26,7 @@ func (r *userRepository) Create(u *models.User) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	if _, err := stmt.Exec(u.Username, u.Password, u.IsAdmin, u.CreatedAt, u.UpdatedAt); err != nil {
 		if err.(*mysql.MySQLError).Number == 1062 {
