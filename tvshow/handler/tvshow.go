@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/0x113/x-media/tvshow/models"
 	"github.com/0x113/x-media/tvshow/service"
 
 	"github.com/labstack/echo"
@@ -23,17 +24,23 @@ func NewTVShowHandler(router *echo.Echo, tvShowService service.TVShowService) {
 
 // GetTVShow calls service layer to get an existing tv show from the database
 func (h *tvShowHandler) GetTVShow(c echo.Context) error {
+	errMsg := &models.Error{} // error message
+	// request body which should be sent
 	var reqBody struct {
 		Name string `json:"name"`
 	}
 	if err := c.Bind(&reqBody); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, "error")
+		errMsg.Code = http.StatusBadRequest
+		errMsg.Message = err.Error()
+		c.JSON(errMsg.Code, errMsg)
 		return err
 	}
 
 	tvShow, err := h.tvShowService.GetTVShowByName(reqBody.Name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, "error")
+		errMsg.Code = http.StatusNotFound
+		errMsg.Message = err.Error()
+		c.JSON(errMsg.Code, errMsg)
 		return err
 	}
 	return c.JSON(http.StatusOK, tvShow)
@@ -52,9 +59,12 @@ func (h *tvShowHandler) UpdateAllTVShows(c echo.Context) error {
 
 // GetAllTVShows calls service layer and returns all tv shows from the database
 func (h *tvShowHandler) GetAllTVShows(c echo.Context) error {
+	errMsg := &models.Error{}
 	tvShows, err := h.tvShowService.GetAllTVShows()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, "error")
+		errMsg.Code = http.StatusInternalServerError
+		errMsg.Message = err.Error()
+		c.JSON(errMsg.Code, errMsg)
 		return err
 	}
 

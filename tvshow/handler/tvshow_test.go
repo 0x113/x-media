@@ -43,13 +43,13 @@ func TestGetTVShow(t *testing.T) {
 		{
 			name:               "Invalid JSON",
 			json:               ``,
-			expectedStatusCode: 422,
+			expectedStatusCode: 400,
 			wantErr:            true,
 		},
 		{
 			name:               "Non-existent show",
 			json:               `{"name": "Silicon Valley"}`,
-			expectedStatusCode: 500,
+			expectedStatusCode: 404,
 			wantErr:            true,
 		},
 	}
