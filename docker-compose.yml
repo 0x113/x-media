@@ -48,6 +48,15 @@ services:
     volumes:
       - ./user/init.sql:/docker-entrypoint-initdb.d/init.sql
 
+  # AUTHENTICATION SERVICE
+  xmedia-auth-svc:
+    container_name: xmedia-auth-svc
+    build: ./auth
+    labels:
+      - traefik.http.routers.authsvc.rule=Host("authsvc")
+    ports:
+      - 8003:8003
+  
   # TRAEFIK
   reverse-proxy:
     container_name: traefik

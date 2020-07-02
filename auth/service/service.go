@@ -44,7 +44,7 @@ func (s *authService) Login(creds *models.Credentials) (*models.TokenDetails, er
 
 	}
 	// call the user service to check is provided data is correct
-	req, err := http.NewRequest(http.MethodPost, "http://127.0.0.1/api/v1/user/validate", bytes.NewBuffer(jsonCreds))
+	req, err := http.NewRequest(http.MethodPost, "http://xmedia-user-svc:8002/api/v1/user/validate", bytes.NewBuffer(jsonCreds))
 	if err != nil {
 		log.Errorf("Couldn't prepare request: %v", err)
 		return nil, err
@@ -57,6 +57,7 @@ func (s *authService) Login(creds *models.Credentials) (*models.TokenDetails, er
 		log.Errorf("Couldn't to execute request: %v", err)
 		return nil, err
 	}
+	// TODO: decode res to models.Error
 	if res.StatusCode != http.StatusOK {
 		log.Errorf("Expected status code: %d, got: %d", http.StatusOK, res.StatusCode)
 		return nil, errors.New("Wrong status code")
