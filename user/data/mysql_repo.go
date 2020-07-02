@@ -1,10 +1,13 @@
 package data
 
 import (
+	"database/sql"
+	"fmt"
+
 	"github.com/0x113/x-media/user/databases"
 	"github.com/0x113/x-media/user/models"
 
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-sql-driver/mysql"
 )
 
 // userRepository manages the use CRUD
@@ -25,6 +28,9 @@ func (r *userRepository) Create(u *models.User) error {
 	}
 
 	if _, err := stmt.Exec(u.Username, u.Password, u.IsAdmin, u.CreatedAt, u.UpdatedAt); err != nil {
+		if err.(*mysql.MySQLError).Number == 1062 {
+			return fmt.Errorf("User %s already exists in the database", u.Username)
+		}
 		return err
 	}
 
@@ -37,6 +43,9 @@ func (r *userRepository) Get(username string) (*models.User, error) {
 
 	var user models.User
 	if err := databases.Database.DB.QueryRow(query, username).Scan(&user.ID, &user.Username, &user.Password, &user.IsAdmin, &user.CreatedAt, &user.UpdatedAt); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("There is no user %s in the database", username)
+		}
 		return nil, err
 	}
 	return &user, nil

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/0x113/x-media/user/data"
@@ -33,14 +34,14 @@ func (s *userService) CreateUser(u *models.User) error {
 	validation := validator.New()
 	if err := validation.Struct(u); err != nil {
 		log.Errorf("Couldn't validate user: %v", err)
-		return err
+		return fmt.Errorf("Couldn't validate provided user data. Only two fields must be provided: username and password. Username must be at least 2 characters long and max 32 characters long. Password should be at least 8 characters long.") // NOTE: quite messy, probably should be better documented
 	}
 
-	// generate password
+	// hash password
 	hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), 11)
 	if err != nil {
-		log.Errorf("Couldn't generate password for user: %v", err)
-		return err
+		log.Errorf("Couldn't hash password for user: %v", err)
+		return fmt.Errorf("Couldn't hash password")
 	}
 	u.Password = string(hash)
 	u.CreatedAt = time.Now()
@@ -48,7 +49,7 @@ func (s *userService) CreateUser(u *models.User) error {
 
 	if err := s.repo.Create(u); err != nil {
 		log.Errorf("Couldn't create user: %v", err)
-		return err
+		return fmt.Errorf("Couldn't create new user: %v", err)
 	}
 
 	log.Infof("Successfully create new user [username=%s]", u.Username)
@@ -61,11 +62,10 @@ func (s *userService) ValidateUser(creds *models.Credentials) (*models.TokenClai
 	if err != nil {
 		return nil, err // no need to log, 'cause GetUser method does it
 	}
-
 	// compare password with hash
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password)); err != nil {
 		log.Errorf("Wrong password for user [username=%s]: %v", creds.Username, err)
-		return nil, err
+		return nil, fmt.Errorf("Invalid user credentials")
 	}
 
 	return &models.TokenClaims{user.Username, user.IsAdmin}, nil
@@ -76,7 +76,7 @@ func (s *userService) GetUser(username string) (*models.User, error) {
 	user, err := s.repo.Get(username)
 	if err != nil {
 		log.Errorf("Couldn't get user [username=%s]: %v", username, err)
-		return nil, err
+		return nil, fmt.Errorf("Couldn't get the user from the database: %v", err)
 	}
 
 	log.Infof("Successfully found user [username=%s]", username)
