@@ -9,7 +9,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// Configuration stores setting values for user service
+// Configuration stores setting values for the auth service
 type Configuration struct {
 	Port string `json:"port"`
 

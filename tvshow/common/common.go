@@ -9,7 +9,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// Configuration stores setting values for tvshow service
+// Configuration stores setting values for the tvshow service
 type Configuration struct {
 	Port string `json:"port"`
 
