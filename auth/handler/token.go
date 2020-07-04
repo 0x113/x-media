@@ -22,22 +22,19 @@ func NewAuthHandler(router *echo.Echo, authService service.AuthService) {
 
 // GenerateToken calls the service layer and generates new JSON Web Token
 func (h *authHandler) GenerateToken(c echo.Context) error {
+	errMsg := new(models.Error)
 	creds := new(models.Credentials)
 	if err := c.Bind(creds); err != nil {
-		errMsg := &models.Error{
-			Code:    http.StatusUnprocessableEntity,
-			Message: "Provided data is invalid",
-		}
+		errMsg.Code = http.StatusBadRequest
+		errMsg.Message = err.Error()
 		c.JSON(errMsg.Code, errMsg)
 		return err
 	}
 
 	token, err := h.authService.Login(creds)
 	if err != nil {
-		errMsg := &models.Error{
-			Code:    http.StatusInternalServerError,
-			Message: "Couldn't generate token for the user",
-		}
+		errMsg.Code = http.StatusInternalServerError
+		errMsg.Message = err.Error()
 		c.JSON(errMsg.Code, errMsg)
 		return err
 	}
@@ -48,22 +45,19 @@ func (h *authHandler) GenerateToken(c echo.Context) error {
 // GetTokenMetadata calls the service layer to validate provided token and
 // to get metadata if token is valid
 func (h *authHandler) GetTokenMetadata(c echo.Context) error {
+	errMsg := new(models.Error)
 	ts := new(models.TokenString)
 	if err := c.Bind(ts); err != nil {
-		errMsg := &models.Error{
-			Code:    http.StatusUnprocessableEntity,
-			Message: "Provided data is invalid",
-		}
+		errMsg.Code = http.StatusBadRequest
+		errMsg.Message = err.Error()
 		c.JSON(errMsg.Code, errMsg)
 		return err
 	}
 
 	accessDetails, err := h.authService.ExtractTokenMetadata(ts.Token)
 	if err != nil {
-		errMsg := &models.Error{
-			Code:    http.StatusInternalServerError,
-			Message: "Couldn't validate provided token",
-		}
+		errMsg.Code = http.StatusInternalServerError
+		errMsg.Message = err.Error()
 		c.JSON(errMsg.Code, errMsg)
 		return err
 	}

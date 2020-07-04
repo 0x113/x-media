@@ -80,7 +80,7 @@ func (suite *AuthHandlerTestSuite) TestGenerateToken() {
 		{
 			name:               "Binding error",
 			json:               ``,
-			expectedStatusCode: 422,
+			expectedStatusCode: 400,
 			wantErr:            true,
 			DoFunc:             nil,
 		},
@@ -139,7 +139,7 @@ func (suite *AuthHandlerTestSuite) TestGetTokenMetadata() {
 		{
 			name:               "Binding error",
 			json:               ``,
-			expectedStatusCode: 422,
+			expectedStatusCode: 400,
 			wantErr:            true,
 		},
 		{

@@ -3,7 +3,6 @@ package service
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -40,26 +39,30 @@ func (s *authService) Login(creds *models.Credentials) (*models.TokenDetails, er
 	jsonCreds, err := json.Marshal(creds)
 	if err != nil {
 		log.Errorf("Couldn't convert credentials to json: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("Couldn't convert credentials to the json")
 
 	}
 	// call the user service to check is provided data is correct
 	req, err := http.NewRequest(http.MethodPost, "http://xmedia-user-svc:8002/api/v1/user/validate", bytes.NewBuffer(jsonCreds))
 	if err != nil {
 		log.Errorf("Couldn't prepare request: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("Couldn't prepare the request")
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := s.httpClient.Do(req)
 	if err != nil {
 		log.Errorf("Couldn't to execute request: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("Couldn't connect to the user service")
 	}
-	// TODO: decode res to models.Error
+
 	if res.StatusCode != http.StatusOK {
 		log.Errorf("Expected status code: %d, got: %d", http.StatusOK, res.StatusCode)
-		return nil, errors.New("Wrong status code")
+		errMsg := new(models.Error)
+		if err := json.NewDecoder(res.Body).Decode(errMsg); err != nil {
+			return nil, fmt.Errorf("Couldn't decode the response from the user service")
+		}
+		return nil, fmt.Errorf(errMsg.Message) // return the error message from the user service
 	}
 	defer res.Body.Close()
 
@@ -67,7 +70,7 @@ func (s *authService) Login(creds *models.Credentials) (*models.TokenDetails, er
 	accessDetails := new(models.AccessDetails)
 	if err := json.NewDecoder(res.Body).Decode(accessDetails); err != nil {
 		log.Errorf("Couldn't decode the response: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("Couldn't decode the response from the user service")
 	}
 
 	token, err := s.GenerateJWT(accessDetails)
@@ -83,7 +86,8 @@ func (s *authService) GenerateJWT(accessDetails *models.AccessDetails) (*models.
 	// validation
 	validate := validator.New()
 	if err := validate.Struct(accessDetails); err != nil {
-		return nil, err
+		log.Errorf("Couldn't validate access details for generating JWT: %v", err)
+		return nil, fmt.Errorf("Provided credentials are invalid")
 	}
 
 	td := &models.TokenDetails{}
@@ -98,7 +102,8 @@ func (s *authService) GenerateJWT(accessDetails *models.AccessDetails) (*models.
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	td.AccessToken, err = at.SignedString([]byte(common.Config.AccessSecret))
 	if err != nil {
-		return nil, err
+		log.Errorf("Couldn't sign the authentication token: %v", err)
+		return nil, fmt.Errorf("Couldn't generate the authentication token")
 	}
 
 	// refresh token
@@ -110,8 +115,12 @@ func (s *authService) GenerateJWT(accessDetails *models.AccessDetails) (*models.
 	}
 	rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
 	td.RefreshToken, err = rt.SignedString([]byte(common.Config.RefreshSecret))
+	if err != nil {
+		log.Errorf("Couldn't sign the refresh token: %v", err)
+		return nil, fmt.Errorf("Couldn't generate the authentication and refresh token")
+	}
 
-	return td, err
+	return td, nil
 }
 
 // ExtractTokenMetadata extracts data from provided JSON Web Token
@@ -125,9 +134,11 @@ func (s *authService) ExtractTokenMetadata(tokenString string) (*models.AccessDe
 
 	// make sure that token is not nil
 	if token == nil {
-		return nil, err
+		log.Errorf("Unable to extract the metadata from token; token is nil")
+		return nil, fmt.Errorf("Token is nil")
 
 	}
+	// return claims if token is valid and token claims are same as models.TokenClaims
 	if claims, ok := token.Claims.(*models.TokenClaims); ok && token.Valid {
 		return &models.AccessDetails{
 			Username: claims.Details.Username,
@@ -135,5 +146,6 @@ func (s *authService) ExtractTokenMetadata(tokenString string) (*models.AccessDe
 		}, nil
 	}
 
-	return nil, err
+	log.Errorf("Couldn't parse the token: %v", err)
+	return nil, fmt.Errorf("Couldn't parse provided token")
 }
