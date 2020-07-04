@@ -20,6 +20,10 @@ type Configuration struct {
 
 	AccessSecret  string `json:"access_secret"`
 	RefreshSecret string `json:"refresh_secret"`
+
+	RedisAddress  string `json:"redis_address"`
+	RedisPassword string `json:"redis_password"`
+	RedisDB       int    `json:"redis_db"`
 }
 
 // Config shares the global configuration
@@ -29,7 +33,7 @@ var (
 
 // LoadConfig loads configuration from the config file
 func LoadConfig() error {
-	file, err := os.Open("config/config.json")
+	file, err := os.Open("config/config_dev.json") // FIXME: change to config.json
 	if err != nil {
 		return err
 	}

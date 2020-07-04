@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/0x113/x-media/auth/common"
+	"github.com/0x113/x-media/auth/databases"
 	"github.com/0x113/x-media/auth/handler"
 	"github.com/0x113/x-media/auth/service"
 
@@ -18,6 +19,11 @@ type Server struct {
 func (srv *Server) initServer() error {
 	// load config
 	if err := common.LoadConfig(); err != nil {
+		return err
+	}
+
+	// connect to the redis
+	if err := databases.Database.Init(); err != nil {
 		return err
 	}
 
