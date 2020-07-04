@@ -14,6 +14,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator"
 	log "github.com/sirupsen/logrus"
+	"github.com/twinj/uuid"
 )
 
 // AuthService decribes authentication service
@@ -105,6 +106,8 @@ func (s *authService) GenerateJWT(accessDetails *models.AccessDetails) (*models.
 		log.Errorf("Couldn't sign the authentication token: %v", err)
 		return nil, fmt.Errorf("Couldn't generate the authentication token")
 	}
+	td.AtExpires = time.Now().Add(15 * time.Minute).Unix()
+	td.AccessUuid = uuid.NewV4().String()
 
 	// refresh token
 	rtClaims := &models.TokenClaims{
@@ -119,6 +122,8 @@ func (s *authService) GenerateJWT(accessDetails *models.AccessDetails) (*models.
 		log.Errorf("Couldn't sign the refresh token: %v", err)
 		return nil, fmt.Errorf("Couldn't generate the authentication and refresh token")
 	}
+	td.RtExpires = time.Now().Add(7 * 24 * time.Hour).Unix()
+	td.RefreshUuid = uuid.NewV4().String()
 
 	return td, nil
 }
