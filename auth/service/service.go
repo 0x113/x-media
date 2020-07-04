@@ -50,7 +50,6 @@ func (s *authService) Login(creds *models.Credentials) (*models.TokenDetails, er
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Host = "usersvc"
 
 	res, err := s.httpClient.Do(req)
 	if err != nil {
