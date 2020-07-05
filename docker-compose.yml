@@ -52,10 +52,20 @@ services:
   xmedia-auth-svc:
     container_name: xmedia-auth-svc
     build: ./auth
+    links:
+      - xmedia-auth-db
     labels:
       - traefik.http.routers.authsvc.rule=Host("authsvc")
     ports:
       - 8003:8003
+
+  # AUTHENTICATION DATABASE
+  xmedia-auth-db:
+    container_name: xmedia-auth-db
+    image: redis:6.0.5
+    command: redis-server --requirepass redispassword
+    ports:
+      - 6379:6379
   
   # TRAEFIK
   reverse-proxy:

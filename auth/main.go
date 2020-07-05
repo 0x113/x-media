@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/0x113/x-media/auth/common"
+	"github.com/0x113/x-media/auth/data"
 	"github.com/0x113/x-media/auth/databases"
 	"github.com/0x113/x-media/auth/handler"
 	"github.com/0x113/x-media/auth/service"
@@ -41,7 +42,8 @@ func main() {
 	}
 
 	httpClient := &http.Client{}
-	authService := service.NewAuthService(httpClient)
+	authRepository := data.NewRedisAuthRepository()
+	authService := service.NewAuthService(httpClient, authRepository)
 	handler.NewAuthHandler(srv.router, authService)
 
 	srv.router.Start(":" + common.Config.Port)

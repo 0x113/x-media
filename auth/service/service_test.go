@@ -20,6 +20,7 @@ import (
 type AuthServiceTestSuite struct {
 	suite.Suite
 	httpClient  *mocks.MockClient
+	authRepo    *mocks.MockAuthRepository
 	authService service.AuthService
 }
 
@@ -33,6 +34,7 @@ func (suite *AuthServiceTestSuite) SetupTest() {
 	logrus.SetOutput(ioutil.Discard)
 
 	suite.httpClient = &mocks.MockClient{}
+	suite.authRepo = mocks.NewMockAuthRepository()
 }
 
 // TestAuthServiceTestSuite runs test suite
@@ -108,7 +110,7 @@ func (suite *AuthServiceTestSuite) TestLogin() {
 	for _, tt := range testCases {
 		// set up httpClient and auth service for the subtest
 		suite.httpClient = &mocks.MockClient{tt.DoFunc}
-		suite.authService = service.NewAuthService(suite.httpClient)
+		suite.authService = service.NewAuthService(suite.httpClient, suite.authRepo)
 
 		suite.Run(tt.name, func() {
 			token, err := suite.authService.Login(tt.creds)
@@ -125,7 +127,7 @@ func (suite *AuthServiceTestSuite) TestLogin() {
 }
 
 func (suite *AuthServiceTestSuite) TestGenerateJWT() {
-	suite.authService = service.NewAuthService(suite.httpClient)
+	suite.authService = service.NewAuthService(suite.httpClient, suite.authRepo)
 	testCases := []struct {
 		name    string
 		details *models.AccessDetails
@@ -163,7 +165,7 @@ func (suite *AuthServiceTestSuite) TestGenerateJWT() {
 }
 
 func (suite *AuthServiceTestSuite) TestExtractTokenMetadata() {
-	suite.authService = service.NewAuthService(suite.httpClient)
+	suite.authService = service.NewAuthService(suite.httpClient, suite.authRepo)
 	// set config
 	common.Config = &common.Configuration{
 		AccessSecret:  "secret",

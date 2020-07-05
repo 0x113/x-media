@@ -23,6 +23,7 @@ import (
 type AuthHandlerTestSuite struct {
 	suite.Suite
 	httpClient  *mocks.MockClient
+	authRepo    *mocks.MockAuthRepository
 	authService service.AuthService
 }
 
@@ -34,6 +35,7 @@ func (suite *AuthHandlerTestSuite) SetupTest() {
 		RefreshSecret: "refresh_secret",
 	}
 	logrus.SetOutput(ioutil.Discard)
+	suite.authRepo = mocks.NewMockAuthRepository()
 }
 
 // TestAuthHandlerTestSuite runs the test suite
@@ -89,7 +91,7 @@ func (suite *AuthHandlerTestSuite) TestGenerateToken() {
 	for _, tt := range testCases {
 		// set up httpClient, auth service and handler
 		suite.httpClient = &mocks.MockClient{tt.DoFunc}
-		suite.authService = service.NewAuthService(suite.httpClient)
+		suite.authService = service.NewAuthService(suite.httpClient, suite.authRepo)
 		h := authHandler{suite.authService}
 
 		// run the subtest
@@ -118,7 +120,7 @@ func (suite *AuthHandlerTestSuite) TestGetTokenMetadata() {
 			}, nil
 		},
 	}
-	suite.authService = service.NewAuthService(suite.httpClient)
+	suite.authService = service.NewAuthService(suite.httpClient, suite.authRepo)
 
 	e := echo.New()
 	h := authHandler{suite.authService}

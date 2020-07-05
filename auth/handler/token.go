@@ -27,7 +27,7 @@ func (h *authHandler) GenerateToken(c echo.Context) error {
 	if err := c.Bind(creds); err != nil {
 		errMsg.Code = http.StatusBadRequest
 		errMsg.Message = err.Error()
-		c.JSON(errMsg.Code, errMsg)
+		c.JSON(errMsg.Code, errMsg.Message)
 		return err
 	}
 
@@ -50,7 +50,7 @@ func (h *authHandler) GetTokenMetadata(c echo.Context) error {
 	if err := c.Bind(ts); err != nil {
 		errMsg.Code = http.StatusBadRequest
 		errMsg.Message = err.Error()
-		c.JSON(errMsg.Code, errMsg)
+		c.JSON(errMsg.Code, errMsg.Message)
 		return err
 	}
 

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/0x113/x-media/auth/common"
+	"github.com/0x113/x-media/auth/data"
 	"github.com/0x113/x-media/auth/httpclient"
 	"github.com/0x113/x-media/auth/models"
 
@@ -26,11 +27,12 @@ type AuthService interface {
 
 type authService struct {
 	httpClient httpclient.HTTPClient
+	repo       data.AuthRepository
 }
 
 // NewAuthService creates new instance of authentication service
-func NewAuthService(httpClient httpclient.HTTPClient) AuthService {
-	return &authService{httpClient}
+func NewAuthService(httpClient httpclient.HTTPClient, repo data.AuthRepository) AuthService {
+	return &authService{httpClient, repo}
 }
 
 // Login calls the user service to check if provided credentials are correct
@@ -74,9 +76,16 @@ func (s *authService) Login(creds *models.Credentials) (*models.TokenDetails, er
 		return nil, fmt.Errorf("Couldn't decode the response from the user service")
 	}
 
+	// generate the access and refresh token
 	token, err := s.GenerateJWT(accessDetails)
 	if err != nil {
 		return nil, err // no need to log, 'cause GenerateJWT does it
+	}
+
+	// save tokens to the redis database
+	if err := s.repo.Save(accessDetails.Username, token); err != nil {
+		log.Errorf("Unable to save the access and refresh token to the database: %v", err)
+		return nil, fmt.Errorf("Unable to save the access and refresh token to the database")
 	}
 
 	return token, nil
