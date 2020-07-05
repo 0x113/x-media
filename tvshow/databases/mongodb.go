@@ -35,10 +35,13 @@ func (db *MongoDB) Init() error {
 	}
 
 	// check the connection
-	if err := client.Ping(ctx, nil); err != nil {
-		log.Errorf("Unable to connect to the MongoDB; err: %v", err)
-		return err
-	}
+	// FIXME: when using this with docker it doesn't wait 10 sec
+	/*
+		if err := client.Ping(ctx, nil); err != nil {
+			log.Errorf("Unable to connect to the MongoDB; err: %v", err)
+			return err
+		}
+	*/
 
 	// create session
 	session, err := client.StartSession()
