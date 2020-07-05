@@ -88,6 +88,7 @@ func (s *authService) Login(creds *models.Credentials) (*models.TokenDetails, er
 		return nil, fmt.Errorf("Unable to save the access and refresh token to the database")
 	}
 
+	log.Infof("Successfully generated and saved the access and refresh token for: %s", accessDetails.Username)
 	return token, nil
 }
 
