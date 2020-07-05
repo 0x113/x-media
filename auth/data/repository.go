@@ -6,4 +6,5 @@ import "github.com/0x113/x-media/auth/models"
 // the authetication service
 type AuthRepository interface {
 	Save(username string, token *models.TokenDetails) error
+	Delete(uuid string) error
 }

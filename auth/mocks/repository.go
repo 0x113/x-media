@@ -14,7 +14,7 @@ type MockAuthRepository struct {
 // NewMockAuthRepository creates new instance of the mocked auth repository
 func NewMockAuthRepository() *MockAuthRepository {
 	var tokens = map[string]string{}
-	tokens["4fc2fa05-869d-45e3-aba8-09736dbb97d5"] = "Test"
+	tokens["f194afdc-b505-4c2f-a754-6e44609c6e80"] = "JohnDoe"
 	return &MockAuthRepository{tokens}
 }
 
@@ -30,5 +30,15 @@ func (m *MockAuthRepository) Save(username string, token *models.TokenDetails) e
 	}
 	m.tokens[token.RefreshUuid] = username
 
+	return nil
+}
+
+// Delete the token from memory
+func (m *MockAuthRepository) Delete(uuid string) error {
+	if _, ok := m.tokens[uuid]; !ok {
+		return fmt.Errorf("There is no token with UUID: %s", uuid)
+	}
+
+	delete(m.tokens, uuid)
 	return nil
 }

@@ -15,6 +15,7 @@ type TokenDetails struct {
 // TokenClaims defines custom token claims
 type TokenClaims struct {
 	Details *AccessDetails
+	Uuid    string
 	jwt.StandardClaims
 }
 
@@ -22,6 +23,12 @@ type TokenClaims struct {
 type AccessDetails struct {
 	Username string `json:"username" validate:"required"`
 	IsAdmin  *bool  `json:"is_admin" validate:"required"`
+}
+
+// UuidAccessDetails defines extends AccessDetails model with token uuid NOTE: should be named better
+type UuidAccessDetails struct {
+	*AccessDetails
+	Uuid string
 }
 
 // TokenString defines the models which will be used to validate the token

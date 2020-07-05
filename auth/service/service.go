@@ -18,11 +18,12 @@ import (
 	"github.com/twinj/uuid"
 )
 
-// AuthService decribes authentication service
+// AuthService defines authentication service
 type AuthService interface {
 	Login(creds *models.Credentials) (*models.TokenDetails, error)
+	Refresh(tokenStr string) (*models.TokenDetails, error)
 	GenerateJWT(accessDetails *models.AccessDetails) (*models.TokenDetails, error)
-	ExtractTokenMetadata(tokenString string) (*models.AccessDetails, error)
+	ExtractTokenMetadata(tokenString, secret string) (*models.UuidAccessDetails, error)
 }
 
 type authService struct {
@@ -103,11 +104,14 @@ func (s *authService) GenerateJWT(accessDetails *models.AccessDetails) (*models.
 
 	td := &models.TokenDetails{}
 	var err error
+	td.AtExpires = time.Now().Add(15 * time.Minute).Unix()
+	td.AccessUuid = uuid.NewV4().String()
 	// access token
 	atClaims := &models.TokenClaims{
 		accessDetails,
+		td.AccessUuid,
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(15 * time.Minute).Unix(),
+			ExpiresAt: td.AtExpires,
 		},
 	}
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
@@ -116,14 +120,15 @@ func (s *authService) GenerateJWT(accessDetails *models.AccessDetails) (*models.
 		log.Errorf("Couldn't sign the authentication token: %v", err)
 		return nil, fmt.Errorf("Couldn't generate the authentication token")
 	}
-	td.AtExpires = time.Now().Add(15 * time.Minute).Unix()
-	td.AccessUuid = uuid.NewV4().String()
 
 	// refresh token
+	td.RtExpires = time.Now().Add(7 * 24 * time.Hour).Unix()
+	td.RefreshUuid = uuid.NewV4().String()
 	rtClaims := &models.TokenClaims{
 		accessDetails,
+		td.RefreshUuid,
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(7 * 24 * time.Hour).Unix(),
+			ExpiresAt: td.RtExpires,
 		},
 	}
 	rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
@@ -132,19 +137,51 @@ func (s *authService) GenerateJWT(accessDetails *models.AccessDetails) (*models.
 		log.Errorf("Couldn't sign the refresh token: %v", err)
 		return nil, fmt.Errorf("Couldn't generate the authentication and refresh token")
 	}
-	td.RtExpires = time.Now().Add(7 * 24 * time.Hour).Unix()
-	td.RefreshUuid = uuid.NewV4().String()
 
 	return td, nil
 }
 
+// Refresh the access token
+func (s *authService) Refresh(tokenStr string) (*models.TokenDetails, error) {
+	claims, err := s.ExtractTokenMetadata(tokenStr, common.Config.RefreshSecret)
+	if err != nil {
+		return nil, err // no need to log, ExtractTokenMetadata does it
+	}
+
+	// remove previous token from the database
+	refreshUuid := claims.Uuid
+	if err := s.repo.Delete(refreshUuid); err != nil {
+		log.Errorf("Couldn't refresh the token; unable to delete previous one: %v", err)
+		return nil, fmt.Errorf("Couldn't to refresh the token; unable to delete the previous one")
+	}
+
+	accessDetails := &models.AccessDetails{
+		Username: claims.Username,
+		IsAdmin:  claims.IsAdmin,
+	}
+	// create new token
+	token, err := s.GenerateJWT(accessDetails)
+	if err != nil {
+		return nil, err // no need to log, GenerateJWT does it
+	}
+
+	// save new token to the database
+	if err := s.repo.Save(accessDetails.Username, token); err != nil {
+		log.Errorf("Couldn't refresh the token; unable to save both tokens to the database: %v", err)
+		return nil, fmt.Errorf("Couldn't refresh the token; unable to save the access and refresh token to the database")
+	}
+
+	log.Infof("Successfully refresh the token for %s", claims.Username)
+	return token, nil
+}
+
 // ExtractTokenMetadata extracts data from provided JSON Web Token
-func (s *authService) ExtractTokenMetadata(tokenString string) (*models.AccessDetails, error) {
+func (s *authService) ExtractTokenMetadata(tokenString, secret string) (*models.UuidAccessDetails, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &models.TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(common.Config.AccessSecret), nil
+		return []byte(secret), nil
 	})
 
 	// make sure that token is not nil
@@ -155,9 +192,9 @@ func (s *authService) ExtractTokenMetadata(tokenString string) (*models.AccessDe
 	}
 	// return claims if token is valid and token claims are same as models.TokenClaims
 	if claims, ok := token.Claims.(*models.TokenClaims); ok && token.Valid {
-		return &models.AccessDetails{
-			Username: claims.Details.Username,
-			IsAdmin:  claims.Details.IsAdmin,
+		return &models.UuidAccessDetails{
+			claims.Details,
+			claims.Uuid,
 		}, nil
 	}
 
