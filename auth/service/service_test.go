@@ -20,6 +20,7 @@ import (
 type AuthServiceTestSuite struct {
 	suite.Suite
 	httpClient  *mocks.MockClient
+	authRepo    *mocks.MockAuthRepository
 	authService service.AuthService
 }
 
@@ -33,6 +34,7 @@ func (suite *AuthServiceTestSuite) SetupTest() {
 	logrus.SetOutput(ioutil.Discard)
 
 	suite.httpClient = &mocks.MockClient{}
+	suite.authRepo = mocks.NewMockAuthRepository()
 }
 
 // TestAuthServiceTestSuite runs test suite
@@ -108,7 +110,7 @@ func (suite *AuthServiceTestSuite) TestLogin() {
 	for _, tt := range testCases {
 		// set up httpClient and auth service for the subtest
 		suite.httpClient = &mocks.MockClient{tt.DoFunc}
-		suite.authService = service.NewAuthService(suite.httpClient)
+		suite.authService = service.NewAuthService(suite.httpClient, suite.authRepo)
 
 		suite.Run(tt.name, func() {
 			token, err := suite.authService.Login(tt.creds)
@@ -125,7 +127,7 @@ func (suite *AuthServiceTestSuite) TestLogin() {
 }
 
 func (suite *AuthServiceTestSuite) TestGenerateJWT() {
-	suite.authService = service.NewAuthService(suite.httpClient)
+	suite.authService = service.NewAuthService(suite.httpClient, suite.authRepo)
 	testCases := []struct {
 		name    string
 		details *models.AccessDetails
@@ -163,12 +165,7 @@ func (suite *AuthServiceTestSuite) TestGenerateJWT() {
 }
 
 func (suite *AuthServiceTestSuite) TestExtractTokenMetadata() {
-	suite.authService = service.NewAuthService(suite.httpClient)
-	// set config
-	common.Config = &common.Configuration{
-		AccessSecret:  "secret",
-		RefreshSecret: "refresh_secret",
-	}
+	suite.authService = service.NewAuthService(suite.httpClient, suite.authRepo)
 
 	testCases := []struct {
 		name          string
@@ -218,7 +215,7 @@ func (suite *AuthServiceTestSuite) TestExtractTokenMetadata() {
 				tt.token = token.AccessToken
 			}
 			// extract data from token
-			accessDetails, err := suite.authService.ExtractTokenMetadata(tt.token)
+			accessDetails, err := suite.authService.ExtractTokenMetadata(tt.token, common.Config.AccessSecret) // TODO: test laso refresh secret
 			if tt.wantErr {
 				suite.NotNil(err)
 				suite.Nil(accessDetails)
@@ -226,6 +223,43 @@ func (suite *AuthServiceTestSuite) TestExtractTokenMetadata() {
 				suite.Nil(err)
 				suite.Equal(tt.details.Username, accessDetails.Username)
 				suite.Equal(tt.details.IsAdmin, accessDetails.IsAdmin)
+			}
+		})
+	}
+}
+
+func (suite *AuthServiceTestSuite) TestRefresh() {
+	testCases := []struct {
+		name    string
+		token   string
+		wantErr bool
+	}{
+		{
+			name:    "Success",
+			token:   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEZXRhaWxzIjp7InVzZXJuYW1lIjoiSm9obkRvZSIsImlzX2FkbWluIjpmYWxzZX0sIlV1aWQiOiJmMTk0YWZkYy1iNTA1LTRjMmYtYTc1NC02ZTQ0NjA5YzZlODAiLCJleHAiOjE1OTQ1NzUwMzB9.h9YpZNRkriaBvi3c1kt9Rm6NyWAfKDI2a2y2gQRCOOU",
+			wantErr: false,
+		},
+		{
+			name:    "No token to delete, no user with UUID from the token",
+			token:   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEZXRhaWxzIjp7InVzZXJuYW1lIjoiSm9obkRvZSIsImlzX2FkbWluIjpmYWxzZX0sIlV1aWQiOiIyMGZhYTY3ZS1iZGEyLTQ5NTUtODUyYi0yMjI2N2EzM2VhZGQiLCJleHAiOjE1OTQ1NzcyOTJ9.W8szMrFZS0jqEi3hnX_V4GsITsVQ5bp5TN3zpQDcIes",
+			wantErr: true,
+		},
+		{
+			name:    "Wrong method",
+			token:   "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.tyh-VfuzIxCyGYDlkBA7DfyjrqmSHu6pQ2hoZuFqUSLPNY2N0mpHb3nk5K17HWP_3cYHBw7AhHale5wky6-sVA",
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.Run(tt.name, func() {
+			token, err := suite.authService.Refresh(tt.token)
+			if tt.wantErr {
+				suite.NotNil(err)
+				suite.Nil(token)
+			} else {
+				suite.Nil(err)
+				suite.NotNil(token)
 			}
 		})
 	}

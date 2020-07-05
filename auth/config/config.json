@@ -5,5 +5,9 @@
 	"log_max_backups": 5,
 	"log_max_age": 30,
   "access_secret": "secret",
-  "refresh_secret": "refresh_secret"
+  "refresh_secret": "refresh_secret",
+  "redis_host": "xmedia-auth-db",
+  "redis_port": "6379",
+  "redis_password": "redispassword",
+  "redis_db": 0
 }

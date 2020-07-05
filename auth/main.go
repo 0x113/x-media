@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/0x113/x-media/auth/common"
+	"github.com/0x113/x-media/auth/data"
+	"github.com/0x113/x-media/auth/databases"
 	"github.com/0x113/x-media/auth/handler"
 	"github.com/0x113/x-media/auth/service"
 
@@ -21,6 +23,11 @@ func (srv *Server) initServer() error {
 		return err
 	}
 
+	// connect to the redis
+	if err := databases.Database.Init(); err != nil {
+		return err
+	}
+
 	// set up router
 	srv.router = echo.New()
 	srv.router.HideBanner = true
@@ -35,7 +42,8 @@ func main() {
 	}
 
 	httpClient := &http.Client{}
-	authService := service.NewAuthService(httpClient)
+	authRepository := data.NewRedisAuthRepository()
+	authService := service.NewAuthService(httpClient, authRepository)
 	handler.NewAuthHandler(srv.router, authService)
 
 	srv.router.Start(":" + common.Config.Port)

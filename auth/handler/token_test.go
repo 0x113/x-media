@@ -23,6 +23,7 @@ import (
 type AuthHandlerTestSuite struct {
 	suite.Suite
 	httpClient  *mocks.MockClient
+	authRepo    *mocks.MockAuthRepository
 	authService service.AuthService
 }
 
@@ -34,6 +35,7 @@ func (suite *AuthHandlerTestSuite) SetupTest() {
 		RefreshSecret: "refresh_secret",
 	}
 	logrus.SetOutput(ioutil.Discard)
+	suite.authRepo = mocks.NewMockAuthRepository()
 }
 
 // TestAuthHandlerTestSuite runs the test suite
@@ -89,7 +91,7 @@ func (suite *AuthHandlerTestSuite) TestGenerateToken() {
 	for _, tt := range testCases {
 		// set up httpClient, auth service and handler
 		suite.httpClient = &mocks.MockClient{tt.DoFunc}
-		suite.authService = service.NewAuthService(suite.httpClient)
+		suite.authService = service.NewAuthService(suite.httpClient, suite.authRepo)
 		h := authHandler{suite.authService}
 
 		// run the subtest
@@ -118,7 +120,7 @@ func (suite *AuthHandlerTestSuite) TestGetTokenMetadata() {
 			}, nil
 		},
 	}
-	suite.authService = service.NewAuthService(suite.httpClient)
+	suite.authService = service.NewAuthService(suite.httpClient, suite.authRepo)
 
 	e := echo.New()
 	h := authHandler{suite.authService}
@@ -178,4 +180,59 @@ func (suite *AuthHandlerTestSuite) TestGetTokenMetadata() {
 			suite.Equal(tt.expectedStatusCode, rec.Code)
 		})
 	}
+}
+
+func (suite *AuthHandlerTestSuite) TestRefreshToken() {
+	suite.authService = service.NewAuthService(suite.httpClient, suite.authRepo)
+	e := echo.New()
+	h := authHandler{suite.authService}
+
+	testCases := []struct {
+		name               string
+		json               string
+		expectedStatusCode int
+		wantErr            bool
+	}{
+		{
+			name:               "Success",
+			json:               `{"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEZXRhaWxzIjp7InVzZXJuYW1lIjoiSm9obkRvZSIsImlzX2FkbWluIjpmYWxzZX0sIlV1aWQiOiJmMTk0YWZkYy1iNTA1LTRjMmYtYTc1NC02ZTQ0NjA5YzZlODAiLCJleHAiOjE1OTQ1NzUwMzB9.h9YpZNRkriaBvi3c1kt9Rm6NyWAfKDI2a2y2gQRCOOU"}`,
+			expectedStatusCode: 200,
+			wantErr:            false,
+		},
+		{
+			name:               "Empty request body",
+			json:               ``,
+			expectedStatusCode: 400,
+			wantErr:            true,
+		},
+		{
+			name:               "Invalid token type",
+			json:               `{"token": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.tyh-VfuzIxCyGYDlkBA7DfyjrqmSHu6pQ2hoZuFqUSLPNY2N0mpHb3nk5K17HWP_3cYHBw7AhHale5wky6-sVA"}`,
+			expectedStatusCode: 400,
+			wantErr:            true,
+		},
+		{
+			name:               "Not token",
+			json:               `{"token": 1}`,
+			expectedStatusCode: 500,
+			wantErr:            true,
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.Run(tt.name, func() {
+			req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/token/refresh", strings.NewReader(tt.json))
+			req.Header.Set("Content-Type", "application/json")
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+
+			err := h.RefreshToken(c)
+			if tt.wantErr {
+				suite.NotNil(err)
+			} else {
+				suite.Nil(err)
+			}
+		})
+	}
+
 }
