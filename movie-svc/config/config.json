@@ -1,0 +1,14 @@
+{
+	"port": "8001",
+	"log_filename": "logs/server.log",
+	"log_max_size": 10,
+	"log_max_backups": 5,
+	"log_max_age": 30,
+	"db_addr": "localhost:27017",
+	"db_name": "xmedia_movie",
+	"db_username": "",
+	"db_password": "",
+	"tv_show_directories": [
+		"/home/y0x/Videos" 
+	]
+}
