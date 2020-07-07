@@ -25,3 +25,9 @@ type TMDbQueryMovie struct {
 	Overview         string  `json:"overview"`
 	PosterPath       string  `json:"poster_path"`
 }
+
+// TMDbGenre defines one genre from the ttps://api.themoviedb.org/3/genre/movie/list?api_key={api_key}&language={lang}
+type TMDbGenre struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}

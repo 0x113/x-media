@@ -76,16 +76,16 @@ func (suite *TMDbAPIClientTestSuite) TestGetTMDbMovieInfo() {
 			wantErr: false,
 		},
 		{
-			name: "Client err",
+			name: "HTTP client error",
 			DoFunc: func(req *http.Request) (*http.Response, error) {
 				return &http.Response{
 					Body: ioutil.NopCloser(nil),
-				}, errors.New("Client error")
+				}, errors.New("HTTP client error")
 			},
 			wantErr: true,
 		},
 		{
-			name: "Unexpected response status code",
+			name: "Wrong response status code",
 			DoFunc: func(req *http.Request) (*http.Response, error) {
 				return &http.Response{
 					StatusCode: http.StatusBadRequest,
@@ -109,6 +109,17 @@ func (suite *TMDbAPIClientTestSuite) TestGetTMDbMovieInfo() {
 			},
 			wantErr: true,
 		},
+		{
+			name: "Decoding error",
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				json := `this should be json`
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				}, nil
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range testCases {
@@ -123,6 +134,83 @@ func (suite *TMDbAPIClientTestSuite) TestGetTMDbMovieInfo() {
 				suite.Nil(err)
 				suite.NotNil(movieQ)
 				suite.Equal(movieQ.Title, "Heat")
+			}
+		})
+	}
+}
+
+func (suite *TMDbAPIClientTestSuite) TestGetTMDbGenres() {
+	testCases := []struct {
+		name    string
+		DoFunc  func(req *http.Request) (*http.Response, error)
+		wantErr bool
+	}{
+		{
+			name: "Success",
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				json := `{
+   "genres":[
+      {
+         "id":28,
+         "name":"Action"
+      },
+      {
+         "id":12,
+         "name":"Adventure"
+      }
+   ]
+}`
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				}, nil
+			},
+			wantErr: false,
+		},
+		{
+			name: "HTTP client error",
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				return &http.Response{
+					Body: ioutil.NopCloser(nil),
+				}, errors.New("HTTP client error")
+			},
+			wantErr: true,
+		},
+		{
+			name: "Wrong response status code",
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				return &http.Response{
+					StatusCode: http.StatusBadRequest,
+					Body:       ioutil.NopCloser(nil),
+				}, nil
+			},
+			wantErr: true,
+		},
+		{
+			name: "Decoding error",
+			DoFunc: func(req *http.Request) (*http.Response, error) {
+				json := `this should be json`
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				}, nil
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range testCases {
+		client := &mocks.MockClient{tt.DoFunc}
+		tmdbApiClient := &tmdb.TMDbAPIClient{client}
+		suite.Run(tt.name, func() {
+			genres, err := tmdbApiClient.GetTMDbGenres("en")
+			if tt.wantErr {
+				suite.NotNil(err)
+				suite.Nil(genres)
+			} else {
+				suite.Nil(err)
+				suite.NotNil(genres)
+				suite.Equal(2, len(genres))
 			}
 		})
 	}
