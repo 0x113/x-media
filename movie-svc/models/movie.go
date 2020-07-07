@@ -7,6 +7,7 @@ type Movie struct {
 	ID               primitive.ObjectID `json:"id"`
 	TMDbID           int                `json:"tm_db_id" validate:"required"`
 	Title            string             `json:"title" validate:"required"`
+	Overview         string             `json:"overview" validate:"required"`
 	OriginalTitle    string             `json:"original_title" validate:"required"`
 	OriginalLanguage string             `json:"original_language" validate:"required"`
 	ReleaseDate      string             `json:"release_date" validate:"required"`
