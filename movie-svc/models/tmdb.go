@@ -10,11 +10,11 @@ type TMDbQueryResponse struct {
 
 // TMDbQueryMovie represents one result model from the https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={title}&language={lang}
 type TMDbQueryMovie struct {
-	Popularity       float64 `json:"popularity"`
+	Popularity       float32 `json:"popularity"`
 	ID               int     `json:"id"`
 	Video            bool    `json:"video"`
 	VoteCount        int     `json:"vote_count"`
-	VoteAverage      float64 `json:"vote_average"`
+	VoteAverage      float32 `json:"vote_average"`
 	Title            string  `json:"title"`
 	ReleaseDate      string  `json:"release_date"`
 	OriginalLanguage string  `json:"original_language"`
