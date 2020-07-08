@@ -24,6 +24,8 @@ type Configuration struct {
 	DbPassword string `json:"db_password"`
 
 	MovieDirectories []string `json:"movie_directories"`
+
+	TMDbAPIKey string `json:"tmdb_api_key"`
 }
 
 // Config shares the global configuration

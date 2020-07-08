@@ -45,3 +45,22 @@ func (m *MockMovieRepository) Save(movie *models.Movie) error {
 	m.movies[movie.Title] = movie
 	return nil
 }
+
+// Update movie in memory
+func (m *MockMovieRepository) Update(movie *models.Movie) error {
+	if _, ok := m.movies[movie.Title]; !ok {
+		return fmt.Errorf("Couldn't update movie %s: no such movie in the database", movie.Title)
+	}
+
+	m.movies[movie.Title] = movie
+	return nil
+}
+
+// GetByTitle returns movie from the mocked database if it exists
+func (m *MockMovieRepository) GetByTitle(title string) (*models.Movie, error) {
+	if _, ok := m.movies[title]; ok {
+		return m.movies[title], nil
+	}
+
+	return nil, fmt.Errorf("Couldn't get movie %s: no such movie in the database", title)
+}
