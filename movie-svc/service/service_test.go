@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"testing"
 
 	"github.com/0x113/x-media/movie-svc/common"
@@ -232,11 +233,12 @@ func (suite *MovieServiceTestSuite) TestUpdateMovieByID() {
 		},
 	}
 
+	var mutex sync.Mutex
 	for _, tt := range testCases {
 		suite.httpClient = &mocks.MockClient{tt.doFunc}
 		suite.movieService = service.NewMovieService(suite.movieRepo, suite.httpClient)
 		suite.Run(tt.name, func() {
-			err := suite.movieService.UpdateMovieByID(tt.id, tt.lang, tt.filePath)
+			_, err := suite.movieService.UpdateMovieByID(tt.id, tt.lang, tt.filePath, &mutex) // NOTE: handle movie return
 			if tt.wantErr {
 				suite.NotNil(err)
 			} else {
@@ -322,4 +324,82 @@ func (suite *MovieServiceTestSuite) TestGetLocalTMDbID() {
 		})
 	}
 
+}
+
+func (suite *MovieServiceTestSuite) TestUpdateAllMovies() {
+	tmpdir, err := ioutil.TempDir("", "update-all-test-1-*")
+	suite.Nil(err)
+
+	tmpdir2, err := ioutil.TempDir("", "update-all-test-2-*")
+	suite.Nil(err)
+
+	_, err = ioutil.TempFile(tmpdir, "The.Godfather-*.mp4")
+	suite.Nil(err)
+	_, err = ioutil.TempFile(tmpdir, "Heat.1995-*.mkv")
+	suite.Nil(err)
+
+	_, err = ioutil.TempFile(tmpdir2, "Inception.2010-*.mkv")
+	suite.Nil(err)
+	_, err = ioutil.TempFile(tmpdir2, "txt-file.*.txt")
+
+	common.Config = &common.Configuration{
+		MovieDirectories: []string{tmpdir, tmpdir2},
+	}
+
+	testCases := []struct {
+		name           string
+		expectedMovies map[string]string
+		expectedErrors map[string]string
+		doFunc         func(req *http.Request) (*http.Response, error)
+	}{
+		{
+			name:           "Success",
+			expectedMovies: nil,
+			expectedErrors: nil,
+			doFunc: func(req *http.Request) (*http.Response, error) {
+				json := `{
+   "page":1,
+   "total_results":327,
+   "total_pages":17,
+   "results":[
+      {
+         "popularity":24.521,
+         "id":949,
+         "video":false,
+         "vote_count":4103,
+         "vote_average":7.9,
+         "title":"Heat",
+         "release_date":"1995-12-15",
+         "original_language":"en",
+         "original_title":"Heat",
+         "genre_ids":[
+            28,
+            80,
+            18,
+            53
+         ],
+         "backdrop_path":"/rfEXNlql4CafRmtgp2VFQrBC4sh.jpg",
+         "adult":false,
+         "overview":"Obsessive master thief, Neil McCauley leads a top-notch crew on various daring heists throughout Los Angeles while determined detective, Vincent Hanna pursues him without rest. Each man recognizes and respects the ability and the dedication of the other even though they are aware their cat-and-mouse game may end in violence.",
+         "poster_path":"/rrBuGu0Pjq7Y2BWSI6teGfZzviY.jpg"
+      }
+   ]
+}`
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				}, nil
+			},
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.httpClient = &mocks.MockClient{tt.doFunc}
+		suite.movieService = service.NewMovieService(suite.movieRepo, suite.httpClient)
+		suite.Run(tt.name, func() {
+			updatedMovies, errors := suite.movieService.UpdateAllMovies("en")
+			suite.Equal(tt.expectedMovies, updatedMovies)
+			suite.Equal(tt.expectedErrors, errors)
+		})
+	}
 }
