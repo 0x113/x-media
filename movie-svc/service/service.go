@@ -10,6 +10,7 @@ import (
 	"github.com/0x113/x-media/movie-svc/models"
 	"github.com/0x113/x-media/movie-svc/utils/filenameparser"
 	"github.com/0x113/x-media/movie-svc/utils/scandir"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -38,6 +39,7 @@ func (s *movieService) UpdateMovieByID(id int, lang, filePath string, mutex *syn
 	tmdbApiClient := &tmdb.TMDbAPIClient{s.httpClient}
 	tmdbMovie, err := tmdbApiClient.GetTMDbMovieInfo(id, lang)
 	if err != nil {
+		log.Errorf("Unable to get the data from the TMDb API [movie_id: %d, lang: %s]: %v", id, lang, err)
 		return nil, err
 	}
 
@@ -68,6 +70,7 @@ func (s *movieService) UpdateMovieByID(id int, lang, filePath string, mutex *syn
 	// get movie based on it's title
 	dbMovie, err := s.repo.GetByTitle(movie.Title) // NOTE: it's 11:29 PM CET and I have no idea how to handle this error
 	if dbMovie == nil {
+		movie.ID = primitive.NewObjectID()
 		if err := s.repo.Save(movie); err != nil {
 			log.Errorf("Couldn't save new movie [%s]: %v", movie.Title, err)
 			return nil, err
@@ -106,6 +109,7 @@ func (s *movieService) UpdateAllMovies(lang string) (map[string]string, map[stri
 
 		// for every single file parse filename to get movie title and
 		// send request to the TMDb API to get movie id
+		// FIXME: error handling like 401 from TMDb's API
 		for _, f := range files {
 			title, err := filenameparser.CreateTitle(f)
 			if err != nil {
@@ -141,7 +145,7 @@ func (s *movieService) UpdateAllMovies(lang string) (map[string]string, map[stri
 		}(m)
 	}
 	wg.Wait()
-	return nil, nil
+	return updatedMovies, errorsMap
 }
 
 // GetLocalTMDbID calls the TMDb API to get movie ID based on its title.
