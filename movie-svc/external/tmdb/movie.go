@@ -43,7 +43,7 @@ func (t *TMDbAPIClient) GetTMDbQueryMovieInfo(title, lang string) (*models.TMDbQ
 	}
 	// get title of the first result
 	if len(tmdbQueryRes.Results) == 0 {
-		return nil, fmt.Errorf("Unable to find movie hor title: %s", title)
+		return nil, fmt.Errorf("Unable to find movie with title: %s", title)
 	}
 
 	return tmdbQueryRes.Results[0], nil
