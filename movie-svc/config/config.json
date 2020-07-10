@@ -1,5 +1,5 @@
 {
-	"port": "8001",
+	"port": "8004",
 	"log_filename": "logs/server.log",
 	"log_max_size": 10,
 	"log_max_backups": 5,
@@ -8,8 +8,8 @@
 	"db_name": "xmedia_movie",
 	"db_username": "",
 	"db_password": "",
-	"tv_show_directories": [
-		"/home/y0x/Videos" 
+	"movie_directories": [
+		"/home/y0x/Videos/" 
 	],
   "tmdb_api_key": "fake-key"
 }

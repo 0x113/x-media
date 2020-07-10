@@ -4,7 +4,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 // Movie defines the movie model
 type Movie struct {
-	ID               primitive.ObjectID `json:"id"`
+	ID               primitive.ObjectID `json:"_id"`
 	TMDbID           int                `json:"tmdb_id" validate:"required"`
 	IMDbID           string             `json:"imdb_id"`
 	Title            string             `json:"title" validate:"required"`
