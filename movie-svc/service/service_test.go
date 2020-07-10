@@ -10,6 +10,7 @@ import (
 	"github.com/0x113/x-media/movie-svc/common"
 	"github.com/0x113/x-media/movie-svc/httpclient"
 	"github.com/0x113/x-media/movie-svc/mocks"
+	"github.com/0x113/x-media/movie-svc/models"
 	"github.com/0x113/x-media/movie-svc/service"
 
 	"github.com/sirupsen/logrus"
@@ -400,4 +401,35 @@ func (suite *MovieServiceTestSuite) TestUpdateAllMovies() {
 			suite.NotNil(updatedMovies)
 		})
 	}
+}
+
+func (suite *MovieServiceTestSuite) TestGetAll() {
+	suite.httpClient = &mocks.MockClient{}
+	suite.movieService = service.NewMovieService(suite.movieRepo, suite.httpClient)
+
+	expectedMovies := []*models.Movie{
+		&models.Movie{
+			TMDbID:           949,
+			Title:            "Heat",
+			Overview:         "Obsessive master thief, Neil McCauley leads a top-notch crew on various daring heists throughout Los Angeles while determined detective, Vincent Hanna pursues him without rest. Each man recognizes and respects the ability and the dedication of the other even though they are aware their cat-and-mouse game may end in violence.",
+			OriginalTitle:    "Heat",
+			OriginalLanguage: "en",
+			ReleaseDate:      "1995-12-15",
+			Genres: []string{
+				"Action",
+				"Crime",
+				"Drama",
+				"Thriller",
+			},
+			Rating:       7.9,
+			Runtime:      170,
+			BackdropPath: "/rfEXNlql4CafRmtgp2VFQrBC4sh.jpg",
+			PosterPath:   "/rrBuGu0Pjq7Y2BWSI6teGfZzviY.jpg",
+			DirPath:      "/home/y0x/Videos/Heat.1995.mp4",
+		},
+	}
+
+	movies, err := suite.movieService.GetAllMovies()
+	suite.Nil(err)
+	suite.Equal(expectedMovies, movies)
 }

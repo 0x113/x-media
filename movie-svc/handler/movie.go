@@ -17,6 +17,7 @@ type movieHandler struct {
 func NewMovieHandler(router *echo.Echo, movieService service.MovieService) {
 	h := &movieHandler{movieService}
 	router.POST("/api/v1/movies/update/all", h.UpdateAllMovies)
+	router.GET("/api/v1/movies/get/all", h.GetAllMovies)
 }
 
 // UpdateAllMovies calls the service to update all movies from the given directories
@@ -40,4 +41,21 @@ func (h *movieHandler) UpdateAllMovies(c echo.Context) error {
 	response["updated_movies"] = updatedMovies
 
 	return c.JSON(http.StatusOK, response)
+}
+
+// GetAllMovies calls the service to get all movies from the database
+func (h *movieHandler) GetAllMovies(c echo.Context) error {
+	errMsg := new(models.Error)
+	movies, err := h.movieService.GetAllMovies()
+	if err != nil {
+		errMsg.Code = http.StatusInternalServerError
+		errMsg.Message = err.Error()
+		c.JSON(errMsg.Code, errMsg)
+		return err
+	}
+
+	res := map[string]interface{}{
+		"movies": movies,
+	}
+	return c.JSON(http.StatusOK, res)
 }
