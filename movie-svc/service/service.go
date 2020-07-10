@@ -70,7 +70,7 @@ func (s *movieService) UpdateMovieByID(id int, lang, filePath string, mutex *syn
 	mutex.Lock()
 	// check if movie exists in the database NOTE: maybe getting by TMDb's ID is better ? ¯\_(ツ)_/¯
 	// get movie based on it's title
-	dbMovie, err := s.repo.GetByTitle(movie.Title) // NOTE: it's 11:29 PM CET and I have no idea how to handle this error
+	dbMovie, err := s.repo.GetByOriginalTitle(movie.OriginalTitle) // NOTE: it's 11:29 PM CET and I have no idea how to handle this error
 	if dbMovie == nil {
 		movie.ID = primitive.NewObjectID()
 		if err := s.repo.Save(movie); err != nil {

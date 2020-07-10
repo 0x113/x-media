@@ -80,6 +80,24 @@ func (r *movieRepository) GetByTitle(title string) (*models.Movie, error) {
 	return &movie, nil
 }
 
+// GetByOriginalTitle returns movie from the database based on its name if exists
+func (r *movieRepository) GetByOriginalTitle(title string) (*models.Movie, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	sessionCopy := databases.Database.Session
+	defer sessionCopy.EndSession(ctx)
+
+	collection := sessionCopy.Client().Database(databases.Database.DbName).Collection(collectionName)
+
+	var movie models.Movie
+	if err := collection.FindOne(ctx, bson.M{"original_title": title}).Decode(&movie); err != nil {
+		return nil, err
+	}
+
+	return &movie, nil
+}
+
 // GetAll returns all movies from the database
 func (r *movieRepository) GetAll() ([]*models.Movie, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

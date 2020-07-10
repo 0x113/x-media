@@ -7,5 +7,6 @@ type MovieRepository interface {
 	Save(movie *models.Movie) error
 	Update(movie *models.Movie) error
 	GetByTitle(title string) (*models.Movie, error)
+	GetByOriginalTitle(title string) (*models.Movie, error)
 	GetAll() ([]*models.Movie, error)
 }

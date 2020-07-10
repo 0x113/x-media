@@ -65,6 +65,17 @@ func (m *MockMovieRepository) GetByTitle(title string) (*models.Movie, error) {
 	return nil, fmt.Errorf("Couldn't get movie %s: no such movie in the database", title)
 }
 
+// GetByOriginalTitle returns movie from the mocked database based on its original title
+func (m *MockMovieRepository) GetByOriginalTitle(title string) (*models.Movie, error) {
+	for _, movie := range m.movies {
+		if movie.OriginalTitle == title {
+			return movie, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Couldn't get movie %s: no such movie in the database", title)
+}
+
 // GetAll returns all moves from the mocked database
 func (m *MockMovieRepository) GetAll() ([]*models.Movie, error) {
 	var movies []*models.Movie
