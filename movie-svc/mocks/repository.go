@@ -64,3 +64,13 @@ func (m *MockMovieRepository) GetByTitle(title string) (*models.Movie, error) {
 
 	return nil, fmt.Errorf("Couldn't get movie %s: no such movie in the database", title)
 }
+
+// GetAll returns all moves from the mocked database
+func (m *MockMovieRepository) GetAll() ([]*models.Movie, error) {
+	var movies []*models.Movie
+	for _, movie := range m.movies {
+		movies = append(movies, movie)
+	}
+
+	return movies, nil
+}

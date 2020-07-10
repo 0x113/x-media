@@ -79,3 +79,25 @@ func (r *movieRepository) GetByTitle(title string) (*models.Movie, error) {
 
 	return &movie, nil
 }
+
+// GetAll returns all movies from the database
+func (r *movieRepository) GetAll() ([]*models.Movie, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	sessionCopy := databases.Database.Session
+	defer sessionCopy.EndSession(ctx)
+
+	collection := sessionCopy.Client().Database(databases.Database.DbName).Collection(collectionName)
+
+	cursor, err := collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	var movies []*models.Movie
+	if err := cursor.All(ctx, &movies); err != nil {
+		return nil, err
+	}
+
+	return movies, nil
+}

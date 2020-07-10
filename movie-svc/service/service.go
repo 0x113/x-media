@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/0x113/x-media/movie-svc/common"
@@ -19,6 +20,7 @@ import (
 type MovieService interface {
 	UpdateMovieByID(id int, lang, filePath string, mutex *sync.Mutex) (*models.Movie, error)
 	UpdateAllMovies(lang string) (map[string]string, map[string]string)
+	GetAllMovies() ([]*models.Movie, error)
 	GetLocalTMDbID(filename string) (int, error)
 }
 
@@ -146,6 +148,18 @@ func (s *movieService) UpdateAllMovies(lang string) (map[string]string, map[stri
 	}
 	wg.Wait()
 	return updatedMovies, errorsMap
+}
+
+// GetAllMovies calls the database layer and returns all movies from the database
+func (s *movieService) GetAllMovies() ([]*models.Movie, error) {
+	movies, err := s.repo.GetAll()
+	if err != nil {
+		log.Errorf("Couldn't get movies from the database: %v", err)
+		return nil, fmt.Errorf("Couldn't get movies from the database")
+	}
+
+	log.Infoln("Successfully found all movies")
+	return movies, nil
 }
 
 // GetLocalTMDbID calls the TMDb API to get movie ID based on its title.

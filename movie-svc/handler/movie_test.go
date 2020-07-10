@@ -139,3 +139,18 @@ func (suite *MovieHandlerTestSuite) TestUpdateAllMovies() {
 		})
 	}
 }
+
+func (suite *MovieHandlerTestSuite) TestGetAllMovies() {
+	// setup
+	suite.httpClient = &mocks.MockClient{}
+	suite.movieService = service.NewMovieService(suite.movieRepository, suite.httpClient)
+	h := movieHandler{suite.movieService}
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/movies/get/all", nil)
+	rec := httptest.NewRecorder()
+	c := suite.router.NewContext(req, rec)
+
+	err := h.GetAllMovies(c)
+	suite.Nil(err)
+	suite.Equal(200, rec.Code)
+}
