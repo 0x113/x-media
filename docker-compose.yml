@@ -66,7 +66,27 @@ services:
     command: redis-server --requirepass redispassword
     ports:
       - 6379:6379
-  
+
+  # MOVIE SERVICE
+  xmedia-movie-svc:
+    container_name: xmedia-movie-svc
+    build: ./movie-svc
+    links:
+      - xmedia-movie-db
+    labels:
+      - traefik.http.routers.moviesvc.rule=Host("moviesvc")
+    ports:
+      - 8004:8004
+
+  # MOVIE DATABASE
+  xmedia-movie-db:
+    container_name: xmedia-movie-db
+    image: mongo:4.2.3
+    labels:
+      - traefik.enable=false
+    ports:
+      - 27020:27020
+
   # TRAEFIK
   reverse-proxy:
     container_name: traefik
