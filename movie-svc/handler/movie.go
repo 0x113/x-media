@@ -17,7 +17,7 @@ type movieHandler struct {
 func NewMovieHandler(router *echo.Echo, movieService service.MovieService) {
 	h := &movieHandler{movieService}
 	router.POST("/api/v1/movies/update/all", h.UpdateAllMovies)
-	router.GET("/api/v1/movies/get/all", h.GetAllMovies)
+	router.GET("/api/v1/movies/all", h.GetAllMovies)
 }
 
 // UpdateAllMovies calls the service to update all movies from the given directories
