@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/0x113/x-media/movie-svc/models"
@@ -18,6 +19,7 @@ func NewMovieHandler(router *echo.Echo, movieService service.MovieService) {
 	h := &movieHandler{movieService}
 	router.POST("/api/v1/movies/update/all", h.UpdateAllMovies)
 	router.GET("/api/v1/movies/all", h.GetAllMovies)
+	router.GET("/api/v1/movies/:id", h.GetMovieByID)
 }
 
 // UpdateAllMovies calls the service to update all movies from the given directories
@@ -58,4 +60,20 @@ func (h *movieHandler) GetAllMovies(c echo.Context) error {
 		"movies": movies,
 	}
 	return c.JSON(http.StatusOK, res)
+}
+
+// GetMovieByID calls the movie service to get movie based on its id]
+func (h *movieHandler) GetMovieByID(c echo.Context) error {
+	errMsg := new(models.Error)
+	id := c.Param("id")
+	movie, err := h.movieService.GetMovieByID(id)
+	if err != nil {
+		errMsg.Code = http.StatusInternalServerError
+		errMsg.Message = err.Error()
+		c.JSON(errMsg.Code, errMsg)
+		return err
+	}
+	fmt.Println(movie)
+
+	return c.JSON(http.StatusOK, movie)
 }
