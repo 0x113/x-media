@@ -154,3 +154,48 @@ func (suite *MovieHandlerTestSuite) TestGetAllMovies() {
 	suite.Nil(err)
 	suite.Equal(200, rec.Code)
 }
+
+func (suite *MovieHandlerTestSuite) TestGetMovieByID() {
+	// setup
+	suite.httpClient = &mocks.MockClient{}
+	suite.movieService = service.NewMovieService(suite.movieRepository, suite.httpClient)
+	h := movieHandler{suite.movieService}
+
+	testCases := []struct {
+		name               string
+		id                 string
+		expectedStatusCode int
+		wantErr            bool
+	}{
+		{
+			name:               "Success",
+			id:                 "507f1f77bcf86cd799439011",
+			expectedStatusCode: 200,
+			wantErr:            false,
+		},
+		{
+			name:               "Service error; non-existent movie or incorrect object id",
+			id:                 "507f1f77bcf86cd799439010",
+			expectedStatusCode: 500,
+			wantErr:            true,
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.Run(tt.name, func() {
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			rec := httptest.NewRecorder()
+			c := suite.router.NewContext(req, rec)
+			c.SetPath("/api/v1/movies/:id")
+			c.SetParamNames("id")
+			c.SetParamValues(tt.id)
+			err := h.GetMovieByID(c)
+			if tt.wantErr {
+				suite.NotNil(err)
+			} else {
+				suite.Nil(err)
+			}
+			suite.Equal(tt.expectedStatusCode, rec.Code)
+		})
+	}
+}

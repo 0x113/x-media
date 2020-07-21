@@ -11,9 +11,9 @@ import (
 	"github.com/0x113/x-media/movie-svc/models"
 	"github.com/0x113/x-media/movie-svc/utils/filenameparser"
 	"github.com/0x113/x-media/movie-svc/utils/scandir"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // MovieService defines the movie service
@@ -22,6 +22,7 @@ type MovieService interface {
 	UpdateAllMovies(lang string) (map[string]string, map[string]string)
 	GetAllMovies() ([]*models.Movie, error)
 	GetLocalTMDbID(filename string) (int, error)
+	GetMovieByID(id string) (*models.Movie, error)
 }
 
 type movieService struct {
@@ -38,8 +39,8 @@ func NewMovieService(repo data.MovieRepository, httpClient httpclient.HTTPClient
 // based on its ID and saves it to the database if doesn't exist
 // or updates if exists.
 func (s *movieService) UpdateMovieByID(id int, lang, filePath string, mutex *sync.Mutex) (*models.Movie, error) {
-	tmdbApiClient := &tmdb.TMDbAPIClient{s.httpClient}
-	tmdbMovie, err := tmdbApiClient.GetTMDbMovieInfo(id, lang)
+	tmdbAPIClient := &tmdb.TMDbAPIClient{s.httpClient}
+	tmdbMovie, err := tmdbAPIClient.GetTMDbMovieInfo(id, lang)
 	if err != nil {
 		log.Errorf("Unable to get the data from the TMDb API [movie_id: %d, lang: %s]: %v", id, lang, err)
 		return nil, err
@@ -96,11 +97,11 @@ func (s *movieService) UpdateMovieByID(id int, lang, filePath string, mutex *syn
 // to the database if it doesn't exist or updates movie if there is already one.
 func (s *movieService) UpdateAllMovies(lang string) (map[string]string, map[string]string) {
 	errorsMap := make(map[string]string)
-	type moviePathId struct {
+	type moviePathID struct {
 		filepath string
 		id       int
 	}
-	var movieIDs []*moviePathId // contains list of moviePathId (filepath: tmdb_id)
+	var movieIDs []*moviePathID // contains list of moviePathID (filepath: tmdb_id)
 
 	for _, dir := range common.Config.MovieDirectories {
 		// get files from the given directories
@@ -122,7 +123,7 @@ func (s *movieService) UpdateAllMovies(lang string) (map[string]string, map[stri
 				errorsMap[title] = err.Error()
 				continue
 			}
-			movieIDs = append(movieIDs, &moviePathId{f, id})
+			movieIDs = append(movieIDs, &moviePathID{f, id})
 		}
 	}
 
@@ -132,7 +133,7 @@ func (s *movieService) UpdateAllMovies(lang string) (map[string]string, map[stri
 	wg.Add(len(movieIDs))
 
 	for _, m := range movieIDs {
-		go func(m *moviePathId) {
+		go func(m *moviePathID) {
 			defer wg.Done()
 			movie, err := s.UpdateMovieByID(m.id, lang, m.filepath, &mutex)
 			if err != nil {
@@ -164,10 +165,29 @@ func (s *movieService) GetAllMovies() ([]*models.Movie, error) {
 
 // GetLocalTMDbID calls the TMDb API to get movie ID based on its title.
 func (s *movieService) GetLocalTMDbID(title string) (int, error) {
-	tmdbApiClient := &tmdb.TMDbAPIClient{s.httpClient}
-	tmdbQMovie, err := tmdbApiClient.GetTMDbQueryMovieInfo(title, "en") // NOTE: "lang" param is probably useless
+	tmdbAPIClient := &tmdb.TMDbAPIClient{s.httpClient}
+	tmdbQMovie, err := tmdbAPIClient.GetTMDbQueryMovieInfo(title, "en") // NOTE: "lang" param is probably useless
 	if err != nil {
 		return 0, err
 	}
 	return tmdbQMovie.ID, nil
+}
+
+// GetMovieByID converts provided id to the ObjectID and then
+// returns movie from the database with this id
+func (s *movieService) GetMovieByID(id string) (*models.Movie, error) {
+	movieID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("Unable to convert string id to ObjectID: %s", id)
+		return nil, fmt.Errorf("Couldn't get movie from the database: unable to convert provided id")
+	}
+
+	movie, err := s.repo.GetByID(movieID)
+	if err != nil {
+		log.Errorf("Unable to get movie by id: %s; err: %v", id, err)
+		return nil, fmt.Errorf("Couldn't get movie from the database")
+	}
+
+	log.Infof("Successfully found movie with id: %s", id)
+	return movie, nil
 }

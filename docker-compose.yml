@@ -77,6 +77,8 @@ services:
       - traefik.http.routers.moviesvc.rule=Host("moviesvc")
     ports:
       - 8004:8004
+    volumes:
+      - /home/y0x/Videos:/data/movies
 
   # MOVIE DATABASE
   xmedia-movie-db:

@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/0x113/x-media/movie-svc/models"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // MockMovieRepository represents in-memory user repository
@@ -14,7 +16,12 @@ type MockMovieRepository struct {
 // NewMockMovieRepository creates new mocked movie repository
 func NewMockMovieRepository() *MockMovieRepository {
 	var movies = map[string]*models.Movie{}
+	id, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011")
+	if err != nil {
+		panic(err)
+	}
 	movies["Heat"] = &models.Movie{
+		ID:               id,
 		TMDbID:           949,
 		Title:            "Heat",
 		Overview:         "Obsessive master thief, Neil McCauley leads a top-notch crew on various daring heists throughout Los Angeles while determined detective, Vincent Hanna pursues him without rest. Each man recognizes and respects the ability and the dedication of the other even though they are aware their cat-and-mouse game may end in violence.",
@@ -76,7 +83,7 @@ func (m *MockMovieRepository) GetByOriginalTitle(title string) (*models.Movie, e
 	return nil, fmt.Errorf("Couldn't get movie %s: no such movie in the database", title)
 }
 
-// GetAll returns all moves from the mocked database
+// GetAll returns all movies from the mocked database
 func (m *MockMovieRepository) GetAll() ([]*models.Movie, error) {
 	var movies []*models.Movie
 	for _, movie := range m.movies {
@@ -84,4 +91,14 @@ func (m *MockMovieRepository) GetAll() ([]*models.Movie, error) {
 	}
 
 	return movies, nil
+}
+
+// GetByID returns movie from the mocked database by its id
+func (m *MockMovieRepository) GetByID(id primitive.ObjectID) (*models.Movie, error) {
+	for _, movie := range m.movies {
+		if movie.ID == id {
+			return movie, nil
+		}
+	}
+	return nil, fmt.Errorf("Unable to find movie with id: %s", id)
 }

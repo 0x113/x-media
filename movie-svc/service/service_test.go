@@ -12,6 +12,7 @@ import (
 	"github.com/0x113/x-media/movie-svc/mocks"
 	"github.com/0x113/x-media/movie-svc/models"
 	"github.com/0x113/x-media/movie-svc/service"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/suite"
@@ -21,12 +22,16 @@ import (
 type MovieServiceTestSuite struct {
 	suite.Suite
 	httpClient   httpclient.HTTPClient
+	movieID      primitive.ObjectID
 	movieRepo    *mocks.MockMovieRepository
 	movieService service.MovieService
 }
 
 // SetupTest initiates mocked database and disables the logrus output
 func (suite *MovieServiceTestSuite) SetupTest() {
+	id, err := primitive.ObjectIDFromHex("507f1f77bcf86cd799439011") // must be same like in the mocked database
+	suite.Nil(err)
+	suite.movieID = id
 	common.Config = &common.Configuration{
 		TMDbAPIKey: "fake-key",
 	}
@@ -409,6 +414,7 @@ func (suite *MovieServiceTestSuite) TestGetAll() {
 
 	expectedMovies := []*models.Movie{
 		&models.Movie{
+			ID:               suite.movieID,
 			TMDbID:           949,
 			Title:            "Heat",
 			Overview:         "Obsessive master thief, Neil McCauley leads a top-notch crew on various daring heists throughout Los Angeles while determined detective, Vincent Hanna pursues him without rest. Each man recognizes and respects the ability and the dedication of the other even though they are aware their cat-and-mouse game may end in violence.",
@@ -432,4 +438,63 @@ func (suite *MovieServiceTestSuite) TestGetAll() {
 	movies, err := suite.movieService.GetAllMovies()
 	suite.Nil(err)
 	suite.Equal(expectedMovies, movies)
+}
+
+func (suite *MovieServiceTestSuite) TestGetMovieByID() {
+	testCases := []struct {
+		name          string
+		id            string
+		expectedMovie *models.Movie
+		wantErr       bool
+	}{
+		{
+			name: "Success",
+			id:   "507f1f77bcf86cd799439011",
+			expectedMovie: &models.Movie{
+				ID:               suite.movieID,
+				TMDbID:           949,
+				Title:            "Heat",
+				Overview:         "Obsessive master thief, Neil McCauley leads a top-notch crew on various daring heists throughout Los Angeles while determined detective, Vincent Hanna pursues him without rest. Each man recognizes and respects the ability and the dedication of the other even though they are aware their cat-and-mouse game may end in violence.",
+				OriginalTitle:    "Heat",
+				OriginalLanguage: "en",
+				ReleaseDate:      "1995-12-15",
+				Genres: []string{
+					"Action",
+					"Crime",
+					"Drama",
+					"Thriller",
+				},
+				Rating:       7.9,
+				Runtime:      170,
+				BackdropPath: "/rfEXNlql4CafRmtgp2VFQrBC4sh.jpg",
+				PosterPath:   "/rrBuGu0Pjq7Y2BWSI6teGfZzviY.jpg",
+				DirPath:      "/home/y0x/Videos/Heat.1995.mp4",
+			},
+			wantErr: false,
+		},
+		{
+			name:          "Incorrect object id",
+			id:            "123",
+			expectedMovie: nil,
+			wantErr:       true,
+		},
+		{
+			name:          "No movie with provided id in the database",
+			id:            "507f1f77bcf86cd799439010",
+			expectedMovie: nil,
+			wantErr:       true,
+		},
+	}
+
+	for _, tt := range testCases {
+		suite.Run(tt.name, func() {
+			movie, err := suite.movieService.GetMovieByID(tt.id)
+			if tt.wantErr {
+				suite.NotNil(err)
+			} else {
+				suite.Nil(err)
+			}
+			suite.Equal(tt.expectedMovie, movie)
+		})
+	}
 }

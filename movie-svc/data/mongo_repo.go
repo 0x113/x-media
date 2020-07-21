@@ -6,7 +6,9 @@ import (
 
 	"github.com/0x113/x-media/movie-svc/databases"
 	"github.com/0x113/x-media/movie-svc/models"
+
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -118,4 +120,22 @@ func (r *movieRepository) GetAll() ([]*models.Movie, error) {
 	}
 
 	return movies, nil
+}
+
+// GetByID returns movie from the database based on its id
+func (r *movieRepository) GetByID(id primitive.ObjectID) (*models.Movie, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	sessionCopy := databases.Database.Session
+	defer sessionCopy.EndSession(ctx)
+
+	collection := sessionCopy.Client().Database(databases.Database.DbName).Collection(collectionName)
+
+	var movie models.Movie
+	if err := collection.FindOne(ctx, bson.M{"_id": id}).Decode(&movie); err != nil {
+		return nil, err
+	}
+
+	return &movie, nil
 }
