@@ -79,6 +79,7 @@ definitions:
     - runtime
     - summary
     type: object
+host: localhost:8001
 info:
   contact: {}
   description: |-
