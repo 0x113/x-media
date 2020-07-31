@@ -1,0 +1,218 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Tv shows API allows to get data from the third party API (TVmaze at this moment) about the tv show from the local drive.\nThe main purpose of the API is to update data, save it to the database and return it in the JSON format.",
+        "title": "Tv show service API",
+        "contact": {},
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0.0"
+    },
+    "basePath": "/api/v1/tvshows",
+    "paths": {
+        "/get": {
+            "post": {
+                "description": "Returns tv shows",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get tv show",
+                "operationId": "get-tvshow-by-name",
+                "parameters": [
+                    {
+                        "description": "title of the tv show",
+                        "name": "name",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.tvShowNamePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TVShow"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/get/all": {
+            "get": {
+                "description": "Returns all the tv shows from the database",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get all tv shows",
+                "operationId": "get-all-tv-shows",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.tvShowListResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/update/all": {
+            "get": {
+                "description": "Calls the third party API (TVMaze at this moment) to get data about tv shows from the local drive",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Update all tv shows",
+                "operationId": "update-all-tv-shows",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.tvShowUpdateResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handler.tvShowListResponse": {
+            "type": "object",
+            "properties": {
+                "tv_shows": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TVShow"
+                    }
+                }
+            }
+        },
+        "handler.tvShowNamePayload": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "BoJack Horseman"
+                }
+            }
+        },
+        "handler.tvShowUpdateResponse": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "updated_shows": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.Error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 500
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Couldn't get data from the TVmaze API"
+                }
+            }
+        },
+        "models.TVShow": {
+            "type": "object",
+            "required": [
+                "dir_path",
+                "genres",
+                "language",
+                "name",
+                "poster_url",
+                "premiered",
+                "rating",
+                "runtime",
+                "summary"
+            ],
+            "properties": {
+                "dir_path": {
+                    "type": "string",
+                    "example": "tvshows/BoJack Horseman"
+                },
+                "genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Comedy",
+                        "Drama"
+                    ]
+                },
+                "id": {
+                    "type": "string",
+                    "example": "xx"
+                },
+                "language": {
+                    "type": "string",
+                    "example": "English"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "BoJack Horseman"
+                },
+                "poster_url": {
+                    "type": "string",
+                    "example": "https://static.tvmaze.com/uploads/images/original_untouched/236/590384.jpg"
+                },
+                "premiered": {
+                    "type": "string",
+                    "example": "2014-08-22"
+                },
+                "rating": {
+                    "type": "number",
+                    "example": 8.1
+                },
+                "runtime": {
+                    "type": "integer"
+                },
+                "summary": {
+                    "type": "string",
+                    "example": "Meet the most beloved sitcom horse of the '90s, 20 years later."
+                }
+            }
+        }
+    }
+}

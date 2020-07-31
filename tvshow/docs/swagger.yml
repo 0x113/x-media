@@ -1,0 +1,81 @@
+definitions:
+  ObjectID:
+    items:
+      format: uint8
+      type: integer
+    title: ObjectID is the BSON ObjectID type.
+    type: array
+    x-go-package: go.mongodb.org/mongo-driver/bson/primitive
+info:
+  description: |-
+    @host petstore.swagger.io
+    @BasePath /v2
+paths:
+  /get:
+    post:
+      consumes:
+      - application/json
+      description: Returns tv show from the database based on its name
+      operationId: getTvShow
+      parameters:
+      - description: Name of the tv show
+        example: test
+        in: body
+        name: name
+        required: true
+        schema:
+          type: string
+        x-go-name: Name
+      produces:
+      - application/json
+      responses:
+        "200":
+          $ref: '#/responses/tvShow'
+        "400":
+          $ref: '#/responses/errorMsg'
+        "500":
+          $ref: '#/responses/errorMsg'
+  /update/all:
+    get:
+      consumes:
+      - application/json
+      description: The purpose of this endpoint is to update all tv shows from the local drive
+      operationId: updateAllTVShows
+      produces:
+      - application/json
+responses:
+  errorMsg:
+    headers:
+      code:
+        format: int64
+        type: integer
+      message:
+        type: string
+  tvShow:
+    headers:
+      dir_path:
+        type: string
+      genres:
+        items:
+          type: string
+        type: array
+      id: {}
+      language:
+        type: string
+      name:
+        type: string
+      poster_url:
+        type: string
+      premiered:
+        type: string
+      rating:
+        format: float
+        type: number
+      runtime:
+        format: int64
+        type: integer
+      summary:
+        type: string
+    schema:
+      $ref: '#/definitions/ObjectID'
+swagger: "2.0"
