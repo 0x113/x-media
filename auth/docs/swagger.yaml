@@ -1,0 +1,106 @@
+basePath: /api/v1/auth/token
+definitions:
+  handler.generateTokenPayload:
+    properties:
+      password:
+        example: SuperSecretAndStrongPassword123#!
+        type: string
+      username:
+        example: TheBill
+        type: string
+    type: object
+  models.Error:
+    properties:
+      code:
+        example: 500
+        type: integer
+      message:
+        example: Internal server error
+        type: string
+    type: object
+  models.TokenDetails:
+    properties:
+      access_token:
+        example: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.tyh-VfuzIxCyGYDlkBA7DfyjrqmSHu6pQ2hoZuFqUSLPNY2N0mpHb3nk5K17HWP_3cYHBw7AhHale5wky6-sVA
+        type: string
+      refresh_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEZXRhaWxzIjp7InVzZXJuYW1lIjoiSm9obkRvZSIsImlzX2FkbWluIjpmYWxzZX0sIlV1aWQiOiJmMTk0YWZkYy1iNTA1LTRjMmYtYTc1NC02ZTQ0NjA5YzZlODAiLCJleHAiOjE1OTQ1NzUwMzB9.h9YpZNRkriaBvi3c1kt9Rm6NyWAfKDI2a2y2gQRCOOU
+        type: string
+    type: object
+  models.TokenString:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEZXRhaWxzIjp7InVzZXJuYW1lIjoiSm9obkRvZSIsImlzX2FkbWluIjpmYWxzZX0sIlV1aWQiOiJmMTk0YWZkYy1iNTA1LTRjMmYtYTc1NC02ZTQ0NjA5YzZlODAiLCJleHAiOjE1OTQ1NzUwMzB9.h9YpZNRkriaBvi3c1kt9Rm6NyWAfKDI2a2y2gQRCOOU
+        type: string
+    type: object
+host: localhost:8003
+info:
+  contact: {}
+  description: The main purpose of the API is to authenticate user
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Authnetication service API
+  version: 1.0.0
+paths:
+  /generate:
+    post:
+      consumes:
+      - application/json
+      description: Generates new access and refresh token for the user
+      operationId: generate-new-token
+      parameters:
+      - description: User credentials
+        in: body
+        name: name
+        required: true
+        schema:
+          $ref: '#/definitions/handler.generateTokenPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TokenDetails'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Generate token
+  /refresh:
+    post:
+      consumes:
+      - application/json
+      description: Generates new access and refresh token for the user
+      operationId: refresh-token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: name
+        required: true
+        schema:
+          $ref: '#/definitions/models.TokenString'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TokenDetails'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Refresh token
+schemes:
+- http
+swagger: "2.0"

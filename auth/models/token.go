@@ -4,8 +4,8 @@ import "github.com/dgrijalva/jwt-go"
 
 // TokenDetails defines token details
 type TokenDetails struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken  string `json:"access_token" example:"eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.tyh-VfuzIxCyGYDlkBA7DfyjrqmSHu6pQ2hoZuFqUSLPNY2N0mpHb3nk5K17HWP_3cYHBw7AhHale5wky6-sVA"`
+	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEZXRhaWxzIjp7InVzZXJuYW1lIjoiSm9obkRvZSIsImlzX2FkbWluIjpmYWxzZX0sIlV1aWQiOiJmMTk0YWZkYy1iNTA1LTRjMmYtYTc1NC02ZTQ0NjA5YzZlODAiLCJleHAiOjE1OTQ1NzUwMzB9.h9YpZNRkriaBvi3c1kt9Rm6NyWAfKDI2a2y2gQRCOOU"`
 	AccessUuid   string `json:"-"`
 	RefreshUuid  string `json:"-"`
 	AtExpires    int64  `json:"-"`
@@ -25,7 +25,7 @@ type AccessDetails struct {
 	IsAdmin  *bool  `json:"is_admin" validate:"required"`
 }
 
-// UuidAccessDetails defines extends AccessDetails model with token uuid NOTE: should be named better
+// UuidAccessDetails defines extented AccessDetails model with token uuid NOTE: should be named better
 type UuidAccessDetails struct {
 	*AccessDetails
 	Uuid string
@@ -33,5 +33,5 @@ type UuidAccessDetails struct {
 
 // TokenString defines the models which will be used to validate the token
 type TokenString struct {
-	Token string `json:"token"`
+	Token string `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEZXRhaWxzIjp7InVzZXJuYW1lIjoiSm9obkRvZSIsImlzX2FkbWluIjpmYWxzZX0sIlV1aWQiOiJmMTk0YWZkYy1iNTA1LTRjMmYtYTc1NC02ZTQ0NjA5YzZlODAiLCJleHAiOjE1OTQ1NzUwMzB9.h9YpZNRkriaBvi3c1kt9Rm6NyWAfKDI2a2y2gQRCOOU"`
 }
