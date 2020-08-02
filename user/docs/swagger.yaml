@@ -1,0 +1,115 @@
+basePath: /api/v1/user
+definitions:
+  handler.userCreateResponse:
+    properties:
+      message:
+        example: Successfully created new user
+        type: string
+    type: object
+  handler.userPayload:
+    properties:
+      password:
+        example: SuperSecretAndStrongPassword123#!
+        type: string
+      username:
+        example: TheBill
+        type: string
+    type: object
+  handler.userValidatePayload:
+    properties:
+      password:
+        example: hashedPasswordHere
+        type: string
+      username:
+        example: TheBill
+        type: string
+    type: object
+  models.Error:
+    properties:
+      code:
+        example: 500
+        type: integer
+      message:
+        example: Server error
+        type: string
+    type: object
+  models.TokenClaims:
+    properties:
+      is_admin:
+        example: false
+        type: boolean
+      username:
+        example: TheBill
+        type: string
+    type: object
+host: localhost:8002
+info:
+  contact: {}
+  description: The main purpose of this API is to create new user and validate existing one
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: User service API
+  version: 1.0.0
+paths:
+  /create:
+    post:
+      consumes:
+      - application/json
+      description: Creates new user in the database
+      operationId: create-new-user
+      parameters:
+      - description: User credentials
+        in: body
+        name: name
+        required: true
+        schema:
+          $ref: '#/definitions/handler.userPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.userCreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Create user
+  /validate:
+    post:
+      consumes:
+      - application/json
+      description: Check if user credentials are correct
+      operationId: validate-user
+      parameters:
+      - description: User credentials
+        in: body
+        name: name
+        required: true
+        schema:
+          $ref: '#/definitions/handler.userValidatePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TokenClaims'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Validate user
+schemes:
+- http
+swagger: "2.0"

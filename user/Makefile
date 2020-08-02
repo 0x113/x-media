@@ -1,5 +1,5 @@
 start:
-	@bash -c "$(MAKE) -s build start-server"
+	@bash -c "$(MAKE) -s build swagger start-server"
 
 build:
 	@echo "  →  Building binary..."
@@ -7,3 +7,7 @@ build:
 
 start-server:
 	./user-svc
+
+swagger:
+	@echo "  →  Generating docs..."
+	@swag i
