@@ -5,7 +5,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 // swagger:response tvShow
 // TVShow information
 type TVShow struct {
-	ID        primitive.ObjectID `bson:"_id" json:"id" validate:"omitempty" example:"xx"`
+	ID        primitive.ObjectID `bson:"_id" json:"id" validate:"omitempty" example:"507f1f77bcf86cd799439011"`
 	Name      string             `bson:"name" json:"name" validate:"required" example:"BoJack Horseman"`
 	Language  string             `bson:"language" json:"language" validate:"required" example:"English"`
 	Genres    []string           `bson:"genres" json:"genres" validate:"required" example:"Comedy,Drama"`
