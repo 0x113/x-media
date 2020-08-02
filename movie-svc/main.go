@@ -7,7 +7,7 @@
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @schemes http
-// @host localhost:8002
+// @host localhost:8004
 // @BasePath /api/v1/movies
 package main
 
