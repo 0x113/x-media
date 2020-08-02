@@ -33,7 +33,7 @@ func NewUserHandler(router *echo.Echo, userService service.UserService) {
 // @Accept  json
 // @Produce  json
 // @Param name body userPayload true "User credentials"
-// @Success 200 {object} userCreateResponse
+// @Success 201 {object} userCreateResponse
 // @Failure 400 {object} models.Error
 // @Failure 500 {object} models.Error
 // @Router /create [post]
