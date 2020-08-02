@@ -1,0 +1,178 @@
+basePath: /api/v1/movies
+definitions:
+  handler.movieListResponse:
+    properties:
+      movies:
+        items:
+          $ref: '#/definitions/models.Movie'
+        type: array
+    type: object
+  handler.updateAllMoviesPayload:
+    properties:
+      language:
+        example: en
+        type: string
+    type: object
+  handler.updateAllMoviesResponse:
+    properties:
+      errors:
+        items:
+          $ref: '#/definitions/handler.updateError'
+        type: array
+      updated_movies:
+        items:
+          $ref: '#/definitions/handler.updatedMovie'
+        type: array
+    type: object
+  handler.updateError:
+    properties:
+      /home/0x113/Movies/Heat.1995.mp4:
+        example: Unable to fund movie with such title
+        type: string
+    type: object
+  handler.updatedMovie:
+    properties:
+      /home/0x113/Movies/K-PAX.2001.mp4:
+        example: K-PAX
+        type: string
+    type: object
+  models.Error:
+    properties:
+      code:
+        example: 500
+        type: integer
+      message:
+        example: Internal server error
+        type: string
+    type: object
+  models.Movie:
+    properties:
+      _id:
+        example: 507f1f77bcf86cd799439011
+        type: string
+      backdrop_path:
+        example: /rfEXNlql4CafRmtgp2VFQrBC4sh.jpg
+        type: string
+      dir_path:
+        example: /home/0x113/Movies/Heat.1995.mp4
+        type: string
+      genres:
+        example:
+        - Action
+        - Crime
+        - Drama
+        - Thriller
+        items:
+          type: string
+        type: array
+      imdb_id:
+        example: tt0113277
+        type: string
+      original_language:
+        example: en
+        type: string
+      original_title:
+        example: Heat
+        type: string
+      overview:
+        example: Obsessive master thief, Neil McCauley leads a top-notch crew on various daring heists throughout Los Angeles while determined detective, Vincent Hanna pursues him without rest. Each man recognizes and respects the ability and the dedication of the other even though they are aware their cat-and-mouse game may end in violence.
+        type: string
+      poster_path:
+        example: /rrBuGu0Pjq7Y2BWSI6teGfZzviY.jpg
+        type: string
+      rating:
+        example: 7.9
+        type: number
+      release_date:
+        example: "1995-12-15"
+        type: string
+      runtime:
+        example: 170
+        type: integer
+      title:
+        example: Heat
+        type: string
+      tmdb_id:
+        example: 949
+        type: integer
+      vote_count:
+        example: 420
+        type: integer
+    required:
+    - backdrop_path
+    - dir_path
+    - genres
+    - original_language
+    - original_title
+    - overview
+    - poster_path
+    - rating
+    - release_date
+    - title
+    - tmdb_id
+    - vote_count
+    type: object
+host: localhost:8002
+info:
+  contact: {}
+  description: |-
+    Movie service API allows to get data from the third party API (TMDb at this moment) about the movie from the local drive.
+    The main purpose of the API is to update data, save it to the database and return it in the JSON format.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Movie service API
+  version: 1.0.0
+paths:
+  /get/all:
+    get:
+      description: Retruns all movies from the database
+      operationId: get-all-movies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.movieListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Get all movies
+  /update/all:
+    post:
+      consumes:
+      - application/json
+      description: Calls the TMDb API to get data about movies from provided directories and saves it to the database
+      operationId: update-all-movies
+      parameters:
+      - description: the language in which to update the movie data
+        in: body
+        name: name
+        required: true
+        schema:
+          $ref: '#/definitions/handler.updateAllMoviesPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.updateAllMoviesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Update all movies
+schemes:
+- http
+swagger: "2.0"

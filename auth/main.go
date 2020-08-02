@@ -1,3 +1,12 @@
+// @title Authnetication service API
+// @version 1.0.0
+// @description The main purpose of the API is to authenticate user
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @schemes http
+// @host localhost:8003
+// @BasePath /api/v1/auth/token
 package main
 
 import (

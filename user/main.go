@@ -1,3 +1,13 @@
+// @title User service API
+// @version 1.0.0
+// @description The main purpose of this API is to create new user and validate existing one
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @schemes http
+// @host localhost:8002
+// @BasePath /api/v1/user
 package main
 
 import (

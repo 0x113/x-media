@@ -1,0 +1,153 @@
+basePath: /api/v1/tvshows
+definitions:
+  handler.tvShowListResponse:
+    properties:
+      tv_shows:
+        items:
+          $ref: '#/definitions/models.TVShow'
+        type: array
+    type: object
+  handler.tvShowNamePayload:
+    properties:
+      name:
+        example: BoJack Horseman
+        type: string
+    type: object
+  handler.tvShowUpdateResponse:
+    properties:
+      errors:
+        additionalProperties:
+          type: string
+        type: object
+      updated_shows:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  models.Error:
+    properties:
+      code:
+        example: 500
+        type: integer
+      message:
+        example: Couldn't get data from the TVmaze API
+        type: string
+    type: object
+  models.TVShow:
+    properties:
+      dir_path:
+        example: tvshows/BoJack Horseman
+        type: string
+      genres:
+        example:
+        - Comedy
+        - Drama
+        items:
+          type: string
+        type: array
+      id:
+        example: xx
+        type: string
+      language:
+        example: English
+        type: string
+      name:
+        example: BoJack Horseman
+        type: string
+      poster_url:
+        example: https://static.tvmaze.com/uploads/images/original_untouched/236/590384.jpg
+        type: string
+      premiered:
+        example: "2014-08-22"
+        type: string
+      rating:
+        example: 8.1
+        type: number
+      runtime:
+        type: integer
+      summary:
+        example: Meet the most beloved sitcom horse of the '90s, 20 years later.
+        type: string
+    required:
+    - dir_path
+    - genres
+    - language
+    - name
+    - poster_url
+    - premiered
+    - rating
+    - runtime
+    - summary
+    type: object
+host: localhost:8001
+info:
+  contact: {}
+  description: |-
+    Tv shows API allows to get data from the third party API (TVmaze at this moment) about the tv show from the local drive.
+    The main purpose of the API is to update data, save it to the database and return it in the JSON format.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Tv show service API
+  version: 1.0.0
+paths:
+  /get:
+    post:
+      consumes:
+      - application/json
+      description: Returns tv shows
+      operationId: get-tvshow-by-name
+      parameters:
+      - description: title of the tv show
+        in: body
+        name: name
+        required: true
+        schema:
+          $ref: '#/definitions/handler.tvShowNamePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TVShow'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Get tv show
+  /get/all:
+    get:
+      description: Returns all the tv shows from the database
+      operationId: get-all-tv-shows
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.tvShowListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Error'
+      summary: Get all tv shows
+  /update/all:
+    get:
+      description: Calls the third party API (TVMaze at this moment) to get data about tv shows from the local drive
+      operationId: update-all-tv-shows
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.tvShowUpdateResponse'
+      summary: Update all tv shows
+schemes:
+- http
+swagger: "2.0"
