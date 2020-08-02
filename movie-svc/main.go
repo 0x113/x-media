@@ -1,3 +1,14 @@
+// @title Movie service API
+// @version 1.0.0
+// @description Movie service API allows to get data from the third party API (TMDb at this moment) about the movie from the local drive.
+// @description The main purpose of the API is to update data, save it to the database and return it in the JSON format.
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @schemes http
+// @host localhost:8002
+// @BasePath /api/v1/movies
 package main
 
 import (

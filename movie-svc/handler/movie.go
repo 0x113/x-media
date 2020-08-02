@@ -6,6 +6,7 @@ import (
 	"github.com/0x113/x-media/movie-svc/models"
 	"github.com/0x113/x-media/movie-svc/service"
 
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/labstack/echo"
 )
 
@@ -16,10 +17,26 @@ type movieHandler struct {
 // NewMovieHandler initiates the movie handlers
 func NewMovieHandler(router *echo.Echo, movieService service.MovieService) {
 	h := &movieHandler{movieService}
+	// swagger
+	opts := middleware.RedocOpts{SpecURL: "/swagger.yaml"}
+	sh := middleware.Redoc(opts, nil)
+	router.File("/swagger.yaml", "./docs/swagger.yaml")
+	router.GET("/docs", echo.WrapHandler(sh))
+
 	router.POST("/api/v1/movies/update/all", h.UpdateAllMovies)
 	router.GET("/api/v1/movies/all", h.GetAllMovies)
 }
 
+// @Summary Update all movies
+// @Description Calls the TMDb API to get data about movies from provided directories and saves it to the database
+// @ID update-all-movies
+// @Accept  json
+// @Produce  json
+// @Param name body updateAllMoviesPayload true "the language in which to update the movie data"
+// @Success 200 {object} updateAllMoviesResponse
+// @Failure 400 {object} models.Error
+// @Failure 500 {object} models.Error
+// @Router /update/all [post]
 // UpdateAllMovies calls the service to update all movies from the given directories
 func (h *movieHandler) UpdateAllMovies(c echo.Context) error {
 	var reqBody struct {
@@ -43,6 +60,14 @@ func (h *movieHandler) UpdateAllMovies(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
+// @Summary Get all movies
+// @Description Retruns all movies from the database
+// @ID get-all-movies
+// @Produce  json
+// @Success 200 {object} movieListResponse
+// @Failure 400 {object} models.Error
+// @Failure 500 {object} models.Error
+// @Router /get/all [get]
 // GetAllMovies calls the service to get all movies from the database
 func (h *movieHandler) GetAllMovies(c echo.Context) error {
 	errMsg := new(models.Error)
