@@ -5,8 +5,8 @@ import (
 
 	"github.com/0x113/x-media/tvshow/models"
 	"github.com/0x113/x-media/tvshow/service"
-	"github.com/go-openapi/runtime/middleware"
 
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/labstack/echo"
 )
 
