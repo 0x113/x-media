@@ -1,4 +1,4 @@
-// @title Authnetication service API
+// @title Authentication service API
 // @version 1.0.0
 // @description The main purpose of the API is to authenticate user
 // @license.name Apache 2.0
