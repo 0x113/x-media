@@ -18,6 +18,7 @@ RUN go build -o tvshows-svc .
 WORKDIR /app
 
 RUN cp -r /build/config .
+RUN cp -r /build/docs .
 RUN cp /build/tvshows-svc .
 
 EXPOSE 8001

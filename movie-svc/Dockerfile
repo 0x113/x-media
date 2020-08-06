@@ -18,6 +18,7 @@ RUN go build -o movie-svc
 WORKDIR /app
 
 RUN cp -r /build/config .
+RUN cp -r /build/docs .
 RUN cp /build/movie-svc .
 
 EXPOSE 8004

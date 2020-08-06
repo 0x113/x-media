@@ -18,6 +18,7 @@ RUN go build -o user-svc .
 WORKDIR /app
 
 RUN cp -r /build/config .
+RUN cp -r /build/docs .
 RUN cp /build/user-svc .
 
 EXPOSE 8002

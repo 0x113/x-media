@@ -18,6 +18,7 @@ RUN go build -o auth-svc .
 WORKDIR /app
 
 RUN cp -r /build/config .
+RUN cp -r /build/docs .
 RUN cp /build/auth-svc .
 
 EXPOSE 8003
