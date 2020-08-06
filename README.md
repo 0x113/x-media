@@ -1,70 +1,54 @@
-<p align="center"><img width="80%" src="https://imgur.com/O4m6Y0Y.png"></p>
-
-<h4 align="center">Share videos in a fast, simple and nice way.</h4>
-
-## :warning: UPDATE :warning:
-I am currently rewriting this to the microservices architecture, so it doesn't work now. Sorry for the inconvenience.
+<p align="center"><img src="https://imgur.com/jEZ0701.png"></p>
 
 ## How To Use
 To clone and run this application, you'll need [git](https://git-scm.com/), [docker](https://docker.com/) and [docker-compose](https://docs.docker.com/compose/install/). Follow this steps to make this work:
 
-1. Clone this repository and create `.env` file.
+1. Clone this repository.
 	```
 	$ git clone https://github.com/0x113/x-media
 	$ cd x-media
-	$ touch .env
 	```
-
-2. Set envirionment varaibles in `.env` file:
-	If you're using vim, type:
-	`$ vi .env`
-	And if you're using emacs, enter the following:
-	`$ sudo apt-get remove emacs`
-	`vi .env`
-	* `VIDEO_DIR` - path to folder with mp4 files
-	* `MOVIES_SUB_DIR` - path to folder with subtitles for videos
-	* `JWT_SECRET` - key for generating jwt
-	* `MYSQL_ROOT_PASSWORD` - MySQL root password
-
-	Example:
-	```
-	VIDEO_DIR=/home/user/Movies
-	MOVIES_SUB_DIR=/home/user/Movies/sub
-	JWT_SECRET=TOP SECRET
-	MYSQL_ROOT_PASSWORD=rootorsomethingbetter
-	```
-
-3. Run it.
+2. Run it via docker.
 	```
 	docker-compose up
 	```
 
-## API Endpoints
+## Services
 
-#### Authentication
-* `/user/create`
-	* Create new user
-	* fields: `username`, `password`
-	* method: `POST`
-	* response: `201`
+#### TV shows service
+* Runs at port `8001`
 
-* `/user/token/generate`
-	* Generate jwt for user
-	* fields: `username`, `password`
-	* method: `POST`
-	* reponse: `200`
+#### User service
+* Runs at port `8002`
 
-#### Video
-* `/api/movies/update`
-  * Updates movie database
-  * method: `GET`
-  * response: `200`
-  * authentication required
+#### Authentication service
+* Runs at port `8003`
 
-* `/api/movies/`
-  * List of all movies
-  * method: `GET`
-  * response: `200`
-  * authentication required
+#### Movie service
+* Runs at port `8004`
 
+## API docs
+Generated using [swagger](https://swagger.io/).<br>
+You can read the docs for each service at the `localhost:<service-port>/docs`. <br>
+Example: `localhost:8001/docs` will give you docs for the tv show service.
+<p align="center"><img src="https://imgur.com/5oJIjjD.png"></p>
 
+## Reverse proxy
+Using [treafik](https://github.com/containous/traefik/).<br>
+Visit `localhost:8080` for the dashboard.
+<p align="center"><img src="https://imgur.com/4e46r50.png"></p>
+<br>
+
+#### Calling services
+You can call each service separatly with `curl --header "Host: <hostname>" localhost/<api-endpoint>`
+Example: `curl --header "Host: tvshowsvc" localhost/api/v1/tvshows/get/all`
+
+#### Hosts
+* User service -> `usersvc`
+* Authentication service -> `authsvc`
+* Movie service -> `moviesvc`
+* TV shows service -> `tvshowsvc`
+
+## Frontend
+Work in progress :). Currenly working on some themes like 8bit or some modern one, so it is in a design phase.
+If you'd like to create frontend for this project, feel free to contribute.
