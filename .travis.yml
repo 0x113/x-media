@@ -3,12 +3,11 @@ go:
   - 1.14.x
 os: linux
 env:
-  - TEST_DIR=movie-svc
-  - TEST_DIR=user
-  - TEST_DIR=tvshow
-  - TEST_DIR=auth
-jobs:
-  exclude:
-    env: GO111MODULE=on
-    
-script: cd $TEST_DIR && GO111MODULE=on go test ./... -v
+  global:
+    - GO111MODULE=on
+  jobs:
+    - TEST_DIR=movie-svc
+    - TEST_DIR=user
+    - TEST_DIR=tvshow
+    - TEST_DIR=auth
+script: cd $TEST_DIR && go test ./... -v
