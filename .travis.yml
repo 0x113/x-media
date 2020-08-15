@@ -1,8 +1,15 @@
 language: go
 go:
   - 1.14.x
-  - master
 os: linux
 env:
   - GO111MODULE=on
-script: cd movie-svc && go test ./... -v
+  - TEST_DIR=movie-svc
+  - TEST_DIR=user
+  - TEST_DIR=tvshow
+  - TEST_DIR=auth
+jobs:
+  exclude:
+    env: GO111MODULE=on
+    
+script: cd $TEST_DIR && go test ./... -v
