@@ -1,12 +1,8 @@
 language: go
 go:
-  - 1.13.x
   - 1.14.x
   - master
 os: linux
 env:
   - TEST_DIR=movie-svc
-  - TEST_DIR=auth
-  - TEST_DIR=tvshow
-  - TEST_DIR=user
-script: cd $TEST_DIR && go test ./... -v -race
+script: cd $TEST_DIR && go test ./... -v
