@@ -4,5 +4,5 @@ go:
   - master
 os: linux
 env:
-  - TEST_DIR=movie-svc
-script: cd $TEST_DIR && go test ./... -v
+  - GO111MODULE=on
+script: cd movie-svc && go test ./... -v
