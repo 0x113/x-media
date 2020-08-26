@@ -1,4 +1,4 @@
-FROM golang:1.14.4
+FROM golang:1.14.4 as builder
 
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \
@@ -15,11 +15,11 @@ COPY . .
 
 RUN go build -o user-svc .
 
-WORKDIR /app
+FROM scratch
 
-RUN cp -r /build/config .
-RUN cp -r /build/docs .
-RUN cp /build/user-svc .
+COPY --from=builder /build/user-svc .
+COPY --from=builder /build/config ./config
+COPY --from=builder /build/docs ./docs
 
 EXPOSE 8002
-ENTRYPOINT ["/app/user-svc"]
+ENTRYPOINT ["./user-svc"]

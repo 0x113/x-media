@@ -1,4 +1,4 @@
-FROM golang:1.14.4
+FROM golang:1.14.4 as builder
 
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \
@@ -15,11 +15,11 @@ COPY . .
 
 RUN go build -o movie-svc
 
-WORKDIR /app
+FROM scratch
 
-RUN cp -r /build/config .
-RUN cp -r /build/docs .
-RUN cp /build/movie-svc .
+COPY --from=builder /build/movie-svc .
+COPY --from=builder /build/config ./config
+COPY --from=builder /build/docs ./docs
 
 EXPOSE 8004
-ENTRYPOINT ["/app/movie-svc"]
+ENTRYPOINT ["./movie-svc"]
