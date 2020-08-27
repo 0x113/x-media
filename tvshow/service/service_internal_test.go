@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/0x113/x-media/tvshow/common"
@@ -9,6 +11,46 @@ import (
 )
 
 func TestGetDirectories(t *testing.T) {
+	var expectedTempDirs []string
+
+	// NOTE: this probably could be done in more elegant way
+	// TODO: change in the future
+	// create temp dirs
+	threeShowsDir, err := ioutil.TempDir("", "three-shows-*")
+	if err != nil {
+		t.Fatalf("Unable to create temporary directory: %v", err)
+	}
+
+	// create three temp dirs in the three-shows-dir
+	for i := 1; i <= 3; i++ {
+		tvTempDir, err := ioutil.TempDir(threeShowsDir, fmt.Sprintf("tvshow-%d-*", i))
+		if err != nil {
+			t.Fatalf("Unable to create temporary tv show directory: %v", err)
+		}
+		expectedTempDirs = append(expectedTempDirs, tvTempDir)
+	}
+
+	// two shows and one file temporary dir
+	twoShowsOneFileDir, err := ioutil.TempDir("", "two-shows-one-file-*")
+	if err != nil {
+		t.Fatalf("Unable to create temporary directory: %v", err)
+	}
+
+	// create two temp dirs in the two-shows-one-file directory
+	for i := 1; i <= 2; i++ {
+		tvTempDir, err := ioutil.TempDir(twoShowsOneFileDir, fmt.Sprintf("tvshow-%d-*", i))
+		if err != nil {
+			t.Fatalf("Unable to create temporary tv show directory: %v", err)
+		}
+		expectedTempDirs = append(expectedTempDirs, tvTempDir)
+	}
+
+	// create temp file in the two-shows-one-file directory
+	_, err = ioutil.TempFile(twoShowsOneFileDir, "temp-file-*")
+	if err != nil {
+		t.Fatalf("Unable to create temporary file: %v", err)
+	}
+
 	testCases := []struct {
 		name         string
 		tvShowDirs   []string
@@ -16,8 +58,8 @@ func TestGetDirectories(t *testing.T) {
 	}{
 		{
 			name:         "Success",
-			tvShowDirs:   []string{"testdata/three_shows", "testdata/two_shows_one_file"},
-			expectedDirs: []string{"testdata/three_shows/BoJack Horseman", "testdata/three_shows/The_Office", "testdata/three_shows/Trailer.Park.Boys", "testdata/two_shows_one_file/Rick and Morty", "testdata/two_shows_one_file/The.Sopranos"},
+			tvShowDirs:   []string{threeShowsDir, twoShowsOneFileDir},
+			expectedDirs: expectedTempDirs,
 		},
 		{
 			name:         "Non-existent directory",
