@@ -34,7 +34,7 @@ var (
 
 // LoadConfig loads configuration from the config file
 func LoadConfig() error {
-	file, err := os.Open("config/config.json") // FIXME: change to config.json
+	file, err := os.Open("config/config.json")
 	if err != nil {
 		return err
 	}
