@@ -1,4 +1,7 @@
 <p align="center"><img src="https://imgur.com/jEZ0701.png"></p>
+<p align="center">
+<img src="https://travis-ci.com/0x113/x-media.svg?branch=master">
+</p>
 
 ## How To Use
 To clone and run this application, you'll need [git](https://git-scm.com/), [docker](https://docker.com/) and [docker-compose](https://docs.docker.com/compose/install/). Follow this steps to make this work:
