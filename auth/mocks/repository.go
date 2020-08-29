@@ -14,7 +14,7 @@ type MockAuthRepository struct {
 // NewMockAuthRepository creates new instance of the mocked auth repository
 func NewMockAuthRepository() *MockAuthRepository {
 	var tokens = map[string]string{}
-	tokens["f194afdc-b505-4c2f-a754-6e44609c6e80"] = "JohnDoe"
+	tokens["b66a7219-f07f-49cf-8163-189da2f5c8cc"] = "JohnDoe"
 	return &MockAuthRepository{tokens}
 }
 
