@@ -27,7 +27,6 @@ func NewAuthHandler(router *echo.Echo, authService service.AuthService) {
 	router.POST("/api/v1/auth/token/generate", handler.GenerateToken)
 	router.POST("/api/v1/auth/token/validate", handler.GetTokenMetadata)
 	router.POST("/api/v1/auth/token/refresh", handler.RefreshToken)
-	router.POST("/api/v1/auth/token/remove", handler.Logout)
 }
 
 // @Summary Generate token
@@ -115,26 +114,4 @@ func (h *authHandler) GetTokenMetadata(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, accessDetails)
-}
-
-// Logout calls the service layer to remove the access and refesh tokens
-// from the Redis database
-func (h *authHandler) Logout(c echo.Context) error {
-	errMsg := new(models.Error)
-	ts := new(models.TokenString)
-	if err := c.Bind(ts); err != nil {
-		errMsg.Code = http.StatusBadRequest
-		errMsg.Message = err.Error()
-		c.JSON(errMsg.Code, errMsg.Message)
-		return err
-	}
-
-	if err := h.authService.RemoveAuth(ts.Token); err != nil {
-		errMsg.Code = http.StatusInternalServerError
-		errMsg.Message = err.Error()
-		c.JSON(errMsg.Code, errMsg)
-		return err
-	}
-
-	return c.JSON(http.StatusOK, "OK") // FIXME
 }
