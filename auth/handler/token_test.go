@@ -195,7 +195,7 @@ func (suite *AuthHandlerTestSuite) TestRefreshToken() {
 	}{
 		{
 			name:               "Success",
-			json:               `{"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEZXRhaWxzIjp7InVzZXJuYW1lIjoiSm9obkRvZSIsImlzX2FkbWluIjpmYWxzZX0sIlV1aWQiOiJmMTk0YWZkYy1iNTA1LTRjMmYtYTc1NC02ZTQ0NjA5YzZlODAiLCJleHAiOjE1OTQ1NzUwMzB9.h9YpZNRkriaBvi3c1kt9Rm6NyWAfKDI2a2y2gQRCOOU"}`,
+			json:               `{"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJEZXRhaWxzIjp7InVzZXJuYW1lIjoiSm9obkRvZSIsImlzX2FkbWluIjpmYWxzZX0sIlV1aWQiOiJiNjZhNzIxOS1mMDdmLTQ5Y2YtODE2My0xODlkYTJmNWM4Y2MiLCJleHAiOjE1OTkzMTc3ODZ9.Yrb3n3BKP3Ol6MxVQjJAdJNCFPzOa627BBuKmlfVFfk"}`,
 			expectedStatusCode: 200,
 			wantErr:            false,
 		},
