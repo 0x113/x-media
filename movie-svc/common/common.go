@@ -44,6 +44,7 @@ func LoadConfig() error {
 	if err := json.NewDecoder(file).Decode(Config); err != nil {
 		return err
 	}
+	file.Close()
 
 	// set up logging TODO: different formatter for Stdout
 	multiWriter := io.MultiWriter(os.Stdout, &lumberjack.Logger{
