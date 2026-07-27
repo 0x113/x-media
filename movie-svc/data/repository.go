@@ -12,6 +12,6 @@ type MovieRepository interface {
 	Update(movie *models.Movie) error
 	GetByTitle(title string) (*models.Movie, error)
 	GetByOriginalTitle(title string) (*models.Movie, error)
-	GetAll() ([]*models.Movie, error)
+	GetAll() ([]*models.Movie, error) // Implementation should return empty slice instead of nil
 	GetByID(id primitive.ObjectID) (*models.Movie, error)
 }
